@@ -1,4 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { ConflictError, InvalidInputError, NotFoundError } from '../errors/domain-errors';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 
 describe('AllExceptionsFilter', () => {
@@ -21,6 +22,14 @@ describe('AllExceptionsFilter', () => {
       error: 'Not Found',
       message: 'Stop 1 not found',
     });
+  });
+
+  it.each([
+    [new NotFoundError('Stop', 7), 404, 'Not Found', 'Stop 7 not found'],
+    [new ConflictError('already resolved'), 409, 'Conflict', 'already resolved'],
+    [new InvalidInputError('bad window'), 400, 'Bad Request', 'bad window'],
+  ])('maps domain error %p to HTTP', (error, statusCode, reason, message) => {
+    expect(filter.toBody(error, '/x')).toMatchObject({ statusCode, error: reason, message });
   });
 
   it('hides internals of unknown errors', () => {

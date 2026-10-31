@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { ConflictError, InvalidInputError, NotFoundError } from '../errors/domain-errors';
 
 export interface ErrorBody {
   statusCode: number;
@@ -14,6 +15,13 @@ export interface ErrorBody {
   message: string | string[];
   path: string;
   timestamp: string;
+}
+
+function domainErrorStatus(exception: unknown): HttpStatus | undefined {
+  if (exception instanceof NotFoundError) return HttpStatus.NOT_FOUND;
+  if (exception instanceof ConflictError) return HttpStatus.CONFLICT;
+  if (exception instanceof InvalidInputError) return HttpStatus.BAD_REQUEST;
+  return undefined;
 }
 
 const reasonPhrase = (status: number): string =>
@@ -39,10 +47,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
   }
 
   toBody(exception: unknown, path: string): ErrorBody {
+    const domainStatus = domainErrorStatus(exception);
     const statusCode =
-      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+      domainStatus ??
+      (exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR);
     let message: string | string[] = 'Internal server error';
-    if (exception instanceof HttpException) {
+    if (domainStatus && exception instanceof Error) {
+      message = exception.message;
+    } else if (exception instanceof HttpException) {
       const res = exception.getResponse();
       message =
         typeof res === 'string'
