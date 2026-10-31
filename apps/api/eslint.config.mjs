@@ -40,7 +40,7 @@ const restrict = (...patterns) => ({ 'no-restricted-imports': ['error', { patter
 
 export default [
   ...base,
-  { ignores: ['jest.config.js'] },
+  { ignores: ['jest.config.js', 'test/jest-e2e.config.js'] },
   {
     // Nest DI reads constructor types via emitDecoratorMetadata; tell type-import rules not to strip them.
     languageOptions: {
