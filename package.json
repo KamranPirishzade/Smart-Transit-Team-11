@@ -1,0 +1,49 @@
+{
+  "name": "smart-transit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Real-time ETA and passenger crowding for Baku buses (prototype)",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "postinstall": "npm run prisma:generate -w @smart-transit/api --if-present",
+    "dev": "concurrently -k -n api,web -c blue,green \"npm run dev -w @smart-transit/api\" \"npm run dev -w @smart-transit/web\"",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e -w @smart-transit/api",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:migrate": "npm run prisma:migrate -w @smart-transit/api",
+    "db:seed": "npm run db:seed -w @smart-transit/api",
+    "db:studio": "npm run prisma:studio -w @smart-transit/api"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "24.19.2",
+    "concurrently": "10.0.6",
+    "cross-env": "10.1.0",
+    "eslint": "9.39.5",
+    "eslint-config-prettier": "10.1.8",
+    "prettier": "3.9.10",
+    "rimraf": "6.1.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1"
+  },
+  "allowScripts": {
+    "prisma@6.19.3": true,
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.28.2": true,
+    "unrs-resolver@1.12.2": true,
+    "@scarf/scarf": false,
+    "@parcel/watcher": false
+  }
+}

@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CrowdLevel {
+  EMPTY
+  MODERATE
+  CROWDED
+  FULL
+}
+
+enum RecommendationStatus {
+  PENDING
+  ACCEPTED
+  DISMISSED
+}
+
+/// AYNA bus route. id = AYNA busId.
+model Route {
+  id                 Int               @id
+  number             String
+  carrier            String?
+  tariffAzn          Decimal?          @map("tariff_azn") @db.Decimal(5, 2)
+  lengthKm           Float             @map("length_km")
+  durationMin        Int               @map("duration_min")
+  firstPoint         String?           @map("first_point")
+  lastPoint          String?           @map("last_point")
+  /// Average BakuBus daily ridership (opendata.az), null when the route is not in the dataset.
+  avgDailyPassengers Int?              @map("avg_daily_passengers")
+  directions         RouteDirection[]
+  reports            CrowdReport[]
+  recommendations    Recommendation[]
+  reserves           ReserveDispatch[]
+
+  @@index([number])
+  @@map("routes")
+}
+
+model RouteDirection {
+  id                Int         @id @default(autoincrement())
+  routeId           Int         @map("route_id")
+  /// 1 | 2 (AYNA directionTypeId)
+  direction         Int
+  towards           String
+  /// [lon, lat][] polyline, oriented from the first stop to the last one.
+  geometry          Json
+  /// true when the AYNA geojson had no line and the polyline was built from stop coordinates.
+  geometryFromStops Boolean     @default(false) @map("geometry_from_stops")
+  lengthM           Float       @map("length_m")
+  route             Route       @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  stops             RouteStop[]
+
+  @@unique([routeId, direction])
+  @@map("route_directions")
+}
+
+model Stop {
+  id         Int         @id
+  code       String
+  name       String
+  lat        Float
+  lon        Float
+  isHub      Boolean     @default(false) @map("is_hub")
+  routeStops RouteStop[]
+
+  @@index([lat, lon])
+  @@map("stops")
+}
+
+model RouteStop {
+  directionId        Int            @map("direction_id")
+  order              Int
+  stopId             Int            @map("stop_id")
+  distanceFromStartM Float          @map("distance_from_start_m")
+  direction          RouteDirection @relation(fields: [directionId], references: [id], onDelete: Cascade)
+  stop               Stop           @relation(fields: [stopId], references: [id])
+
+  @@id([directionId, order])
+  @@index([stopId])
+  @@map("route_stops")
+}
+
+model CrowdReport {
+  id        String     @id @default(uuid())
+  routeId   Int        @map("route_id")
+  direction Int?
+  vehicleId String?    @map("vehicle_id")
+  stopId    Int?       @map("stop_id")
+  level     CrowdLevel
+  lat       Float
+  lon       Float
+  deviceId  String     @map("device_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+  route     Route      @relation(fields: [routeId], references: [id])
+
+  @@index([routeId, createdAt])
+  @@index([createdAt])
+  @@map("crowd_reports")
+}
+
+/// At most one PENDING recommendation per route — enforced by a partial unique index in the init migration.
+model Recommendation {
+  id           String               @id @default(uuid())
+  routeId      Int                  @map("route_id")
+  direction    Int?
+  reason       String
+  highReports  Int                  @map("high_reports")
+  totalReports Int                  @map("total_reports")
+  windowStart  DateTime             @map("window_start")
+  windowEnd    DateTime             @map("window_end")
+  status       RecommendationStatus @default(PENDING)
+  createdAt    DateTime             @default(now()) @map("created_at")
+  resolvedAt   DateTime?            @map("resolved_at")
+  resolvedBy   String?              @map("resolved_by")
+  route        Route                @relation(fields: [routeId], references: [id])
+  reserve      ReserveDispatch?
+
+  @@index([status, createdAt])
+  @@index([routeId, status])
+  @@map("recommendations")
+}
+
+model ReserveDispatch {
+  id               String          @id @default(uuid())
+  routeId          Int             @map("route_id")
+  direction        Int
+  recommendationId String?         @unique @map("recommendation_id")
+  active           Boolean         @default(true)
+  createdAt        DateTime        @default(now()) @map("created_at")
+  route            Route           @relation(fields: [routeId], references: [id])
+  recommendation   Recommendation? @relation(fields: [recommendationId], references: [id])
+
+  @@index([active])
+  @@map("reserve_dispatches")
+}
+
+model Operator {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("operators")
+}
