@@ -17,17 +17,25 @@
     "prisma:studio": "prisma studio",
     "db:seed": "prisma db seed",
     "db:seed:test": "cross-env PRISMA_TARGET=test SEED_ROUTES=37 prisma db seed",
+    "db:seed:operator": "tsx prisma/seed-operator-cli.ts",
     "db:stats": "tsx prisma/db-stats.ts",
     "db:stats:test": "cross-env PRISMA_TARGET=test tsx prisma/db-stats.ts"
   },
   "dependencies": {
     "@nestjs/common": "11.2.8",
     "@nestjs/core": "11.2.8",
+    "@nestjs/event-emitter": "3.0.1",
+    "@nestjs/jwt": "11.0.2",
+    "@nestjs/passport": "11.0.5",
     "@nestjs/platform-express": "11.2.8",
     "@nestjs/swagger": "11.4.7",
+    "@nestjs/throttler": "6.7.1",
     "@prisma/client": "6.19.3",
+    "bcryptjs": "3.0.3",
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
+    "passport": "0.7.0",
+    "passport-jwt": "4.0.1",
     "prisma": "6.19.3",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
@@ -38,6 +46,7 @@
     "@nestjs/testing": "11.2.8",
     "@types/express": "5.0.6",
     "@types/jest": "30.0.0",
+    "@types/passport-jwt": "4.0.1",
     "jest": "30.5.2",
     "ts-jest": "29.4.15"
   }
