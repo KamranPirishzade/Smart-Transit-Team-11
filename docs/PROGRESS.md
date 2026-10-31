@@ -1,6 +1,7 @@
 # Progress (handoff)
 
 Started 2026-10-31 12:09. Elapsed after M2: 59 min (on schedule, plan had M2 ending at 1:10).
+M3 done (13:23, 1 h 14 min elapsed); M4 (web) is next.
 Last commit before this file: `2fd8cdb`.
 
 ## M1: skeleton, DB, seed ✅ (31 min)
@@ -28,26 +29,30 @@ Last commit before this file: `2fd8cdb`.
 - Module boundaries through `public-api.ts`, enforced by ESLint: ADR-008.
 - Commits: Conventional Commits, one logical change per commit (see CLAUDE.md).
 
-## M3 next: crowding + dispatch + auth
+## M3: crowding + dispatch + auth ✅ (~15 min)
 
-- `crowding`: `POST /reports` (rate limit 3/min per deviceId), CrowdAggregator (10 min window,
-  half-life 5 min, baseline = demand × hour profile), `/crowding/heatmap` (~250 m cells),
-  `/crowding/routes`.
-- Bind the simulation port `ROUTE_CROWD_READER` (now `NoCrowdDataReader`) to crowding's query,
-  via a `public-api.ts` export.
-- `dispatch`: event `crowd.report.submitted` → CongestionRule (≥ 8 high reports and ≥ 60%, no
-  PENDING) → Recommendation. Accept creates a ReserveDispatch and emits `dispatch.reserve.added`;
-  call `PrismaReserveVehicleSource.invalidate()` on that event. Dismiss is also needed.
-  Add `/operator/overview` and `/operator/recommendations`.
-- `auth`: `POST /auth/login` (JWT, bcryptjs). Seed the operator from `OPERATOR_EMAIL` and
-  `OPERATOR_PASSWORD`. Add `JWT_SECRET` to `env.schema.ts`.
-- `PUT /operator/sim-clock` 🔒 (`AdjustableSimClock` exists in `common/sim-clock`).
-- Realtime: `/stream/operator` 🔒 (`?token=`), reusing `periodicStream` and the event bus.
-- `scripts/demo-surge.ts` (12 high reports on one route).
-- Unit tests: CrowdAggregator, CongestionRule, SubmitCrowdReport, AcceptRecommendation.
+- `POST /reports` (DTO validation, 3/min per `deviceId` via `@nestjs/throttler`) → `crowd.report.submitted`.
+- Crowding: aggregator (10 min window, half-life 5 min, baseline = demand × hour profile),
+  `/crowding/heatmap` (~250 m cells), `/crowding/routes`. Simulation's `ROUTE_CROWD_READER` now reads it.
+- Dispatch: congestion rule (≥ 8 high, ≥ 60%, no PENDING) on every report; the DB partial unique index
+  guards duplicates. Accept → `ReserveDispatch` → `dispatch.reserve.added` → `reserve-{id}` bus in the
+  simulation (cache invalidated by the event). Dismiss, `/operator/overview`, `PUT /operator/sim-clock` 🔒.
+- Auth: `POST /auth/login` (JWT + bcryptjs), `OperatorAuthGuard` (Bearer or `?token=`), operator seeded
+  from `OPERATOR_EMAIL`/`OPERATOR_PASSWORD` (`db:seed`, or `npm run db:seed:operator -w @smart-transit/api`).
+- Realtime: `/stream/operator` 🔒 (`?token=`): `overview` every 2 s + recommendation/reserve events.
+- `npm run demo:surge -- --route 49` (AYNA route id 49 = bus number 64) → PENDING recommendation.
+- 163 unit tests; domain coverage: statements 99.3%, branches 90.4%, functions 98.5%, lines 99.6%.
+- Live check on Neon: surge → recommendation, accept → reserve bus on `/vehicles`, 2nd accept 409, 4th
+  report from one device 429, no token 401, operator SSE delivers events.
 
-Approved M3 packages: `@nestjs/event-emitter`, `@nestjs/jwt`, `@nestjs/passport`, `passport`,
-`passport-jwt`, `@nestjs/throttler`, `bcryptjs`.
+## Key decisions (M3)
+
+- `@nestjs/event-emitter` 3.0.1, `@nestjs/jwt` 11.0.2, `@nestjs/passport` 11.0.5: the v12 releases are
+  ESM-only and break the CommonJS setup (ADR-002).
+- Reports are stamped with the `SimClock` time, so a demo time shift keeps windows consistent.
+- A reserve with no dominant direction in the reports goes in direction 1.
+- Demo data from the live check (reports, one ACCEPTED recommendation, one active reserve) is still in the
+  main DB; remove it before the real demo.
 
 ## Open items
 
