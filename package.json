@@ -18,6 +18,7 @@
     "test:e2e": "npm run test:e2e -w @smart-transit/api",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "demo:surge": "tsx scripts/demo-surge.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:migrate": "npm run prisma:migrate -w @smart-transit/api",
