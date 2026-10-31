@@ -22,6 +22,26 @@ Machine: Windows, no Docker. DB: Neon PostgreSQL, connection strings only in roo
 - Exact versions (`--save-exact`). **Ask before adding a new dependency.**
 - Database names are never hardcoded — read from `DATABASE_URL` / `DATABASE_URL_TEST`.
 
+## Domain rules (source of truth for the modules)
+
+- **Simulation:** vehicle position is a pure function `position(route, direction, vehicleIndex, now)`
+  (headway, phase from a route-id hash, speed); nothing is stored per tick. Headway comes from BakuBus
+  demand (default if missing). Peak 07:30–09:30 and 17:30–19:30: shorter headway, speed ×0.7.
+  Reserve buses (`ReserveDispatch`) join their route as extra vehicles. `SimClock` port: real time
+  by default, operator can set a demo time.
+- **SSE:** every 2 s, filtered by `?routeId=` or `?bbox=` (max 800 vehicles). Operator stream takes
+  `?token=`.
+- **Crowd levels:** EMPTY 0 · MODERATE 1 · CROWDED 2 · FULL 3. Baseline = route demand × hour profile.
+  Reports from the last 10 min override it (time-weighted, half-life 5 min). Heatmap: ~250 m cells.
+- **Congestion rule:** last 10 min, same route: CROWDED+FULL reports ≥ 8 **and** ≥ 60% of all reports
+  **and** no PENDING recommendation for that route. Statuses: PENDING → ACCEPTED | DISMISSED.
+  Accept creates a `ReserveDispatch`.
+- **Routes without stops** are returned with `hasStops: false`, so passengers cannot pick them.
+- **Rate limit:** `POST /reports`, 3 per minute per `deviceId`.
+- **Errors:** `{ statusCode, error, message, path, timestamp }`. Swagger at `/api/docs`, Bearer auth.
+- **Honesty:** vehicle positions, ETAs and baseline crowding are simulated. Stops, routes, lines and
+  demand are real (AYNA public map service, opendata.az).
+
 ## Commands
 
 - `npm run dev` · `npm test` · `npm run test:e2e` · `npm run lint` · `npm run typecheck` · `npm run build`

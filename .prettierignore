@@ -7,4 +7,3 @@ package-lock.json
 apps/api/prisma/migrations
 packages/api-client/openapi.json
 packages/api-client/src/schema.d.ts
-PLAN.md

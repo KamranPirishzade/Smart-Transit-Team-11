@@ -45,7 +45,7 @@ maintained. Moving to 12 later is a module-format change, not an architecture ch
 
 ## ADR-004 — Neon PostgreSQL, no local Docker
 
-**Status:** accepted (see PLAN.md §0.1)
+**Status:** accepted (2026-10-31)
 
 The development machine has no Docker and no admin rights. Development and e2e tests use Neon
 (cloud PostgreSQL). The main and test databases come only from `DATABASE_URL` and
