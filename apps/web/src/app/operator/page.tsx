@@ -3,7 +3,7 @@
 import type { Schemas } from '@smart-transit/api-client';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { BusMap } from '@/components/bus-map';
+import { BusMap, type HeatPoint } from '@/components/bus-map';
 import { api, getToken, setToken } from '@/lib/api';
 import { crowdLabel } from '@/lib/crowd';
 import { useVehicleStream } from '@/lib/use-vehicle-stream';
@@ -28,6 +28,7 @@ export default function OperatorPage() {
   const router = useRouter();
   const [overview, setOverview] = useState<Overview | null>(null);
   const [pending, setPending] = useState<Recommendation[]>([]);
+  const [heat, setHeat] = useState<HeatPoint[]>([]);
   const [bbox, setBbox] = useState<string>();
   const [busyId, setBusyId] = useState<string | null>(null);
   const vehicles = useVehicleStream(bbox ? { bbox } : null);
@@ -38,13 +39,17 @@ export default function OperatorPage() {
   }, [router]);
 
   const refresh = useCallback(async () => {
-    const [o, r] = await Promise.all([
+    const [o, r, h] = await Promise.all([
       api.GET('/api/operator/overview'),
       api.GET('/api/operator/recommendations', { params: { query: { status: 'PENDING' } } }),
+      api.GET('/api/crowding/heatmap'),
     ]);
     if (o.response.status === 401 || r.response.status === 401) return logout();
     if (o.data) setOverview(o.data);
     if (r.data) setPending(r.data);
+    if (h.data) {
+      setHeat(h.data.cells.map((c) => ({ lat: c.lat, lon: c.lon, level: c.level })));
+    }
   }, [logout]);
 
   useEffect(() => {
@@ -79,7 +84,7 @@ export default function OperatorPage() {
   const reserves = vehicles.filter((v) => v.isReserve).length;
 
   return (
-    <main className="flex h-full flex-col md:flex-row">
+    <main className="flex h-full flex-col md:flex-row-reverse">
       <aside className="flex w-full flex-col gap-3 overflow-y-auto bg-slate-50 p-4 md:w-96">
         <header className="flex items-center justify-between">
           <h1 className="text-lg font-semibold text-brand">Operator paneli</h1>
@@ -106,15 +111,14 @@ export default function OperatorPage() {
           >
             Pik saatı göstər
           </button>
-          {overview?.clock.overridden && (
-            <button
-              onClick={() => void setClock(null)}
-              className="rounded-lg px-2 py-1.5 text-sm text-slate-600 ring-1 ring-slate-300"
-            >
-              Real vaxt
-            </button>
-          )}
+          <button
+            onClick={() => void setClock(null)}
+            className="rounded-lg px-2 py-1.5 text-sm text-slate-600 ring-1 ring-slate-300"
+          >
+            Normal saat
+          </button>
         </div>
+        <p className="text-xs text-slate-400">Simulyasiya — mövqelər və ETA real deyil.</p>
 
         <h2 className="text-sm font-semibold text-slate-700">Tövsiyələr</h2>
         {pending.length === 0 && (
@@ -166,7 +170,7 @@ export default function OperatorPage() {
         )}
       </aside>
       <div className="min-h-[50vh] flex-1">
-        <BusMap vehicles={vehicles} onBoundsChange={setBbox} />
+        <BusMap vehicles={vehicles} heat={heat} onBoundsChange={setBbox} />
       </div>
     </main>
   );

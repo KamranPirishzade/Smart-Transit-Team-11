@@ -2,7 +2,7 @@
 
 import type { Schemas } from '@smart-transit/api-client';
 import { useRouter } from 'next/navigation';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { BusMap, type MapStop } from '@/components/bus-map';
 import { api } from '@/lib/api';
 import { useVehicleStream } from '@/lib/use-vehicle-stream';
@@ -11,14 +11,41 @@ type RouteSummary = Schemas['RouteSummaryDto'];
 type RouteDetails = Schemas['RouteDetailsDto'];
 
 const SEARCH_DELAY_MS = 250;
+/** 28 May metro area — used when the browser has no geolocation. */
+const FALLBACK = { lat: 40.3777, lon: 49.8531 };
 
 export default function HomePage() {
   const router = useRouter();
   const [results, setResults] = useState<RouteSummary[]>([]);
   const [searched, setSearched] = useState(false);
   const [selected, setSelected] = useState<RouteDetails | null>(null);
+  const [nearby, setNearby] = useState<MapStop[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const vehicles = useVehicleStream(selected ? { routeId: selected.id } : null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load(lat: number, lon: number) {
+      const { data } = await api.GET('/api/stops/nearby', {
+        params: { query: { lat, lon, radius: 600, limit: 12 } },
+      });
+      if (!cancelled && data) {
+        setNearby(data.map((s) => ({ id: s.id, name: s.name, lat: s.lat, lon: s.lon })));
+      }
+    }
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => void load(pos.coords.latitude, pos.coords.longitude),
+        () => void load(FALLBACK.lat, FALLBACK.lon),
+        { timeout: 4000 },
+      );
+    } else {
+      void load(FALLBACK.lat, FALLBACK.lon);
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function onSearch(value: string) {
     clearTimeout(timer.current);
@@ -49,8 +76,8 @@ export default function HomePage() {
     () => selected?.directions.map((d) => d.geometry as [number, number][]),
     [selected],
   );
-  const stops = useMemo<MapStop[] | undefined>(() => {
-    if (!selected) return undefined;
+  const stops = useMemo<MapStop[]>(() => {
+    if (!selected) return nearby;
     const unique = new Map<number, MapStop>();
     for (const direction of selected.directions) {
       for (const s of direction.stops) {
@@ -58,7 +85,7 @@ export default function HomePage() {
       }
     }
     return [...unique.values()];
-  }, [selected]);
+  }, [selected, nearby]);
 
   return (
     <main className="relative h-full">

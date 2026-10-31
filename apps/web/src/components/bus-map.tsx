@@ -14,10 +14,18 @@ export interface MapStop {
   lon: number;
 }
 
+export interface HeatPoint {
+  lat: number;
+  lon: number;
+  level: string;
+}
+
 interface Props {
   vehicles: Vehicle[];
   lines?: [number, number][][];
   stops?: MapStop[];
+  /** Crowding report cells (operator map). */
+  heat?: HeatPoint[];
   onStopClick?: (id: number) => void;
   /** minLon,minLat,maxLon,maxLat of the visible area. */
   onBoundsChange?: (bbox: string) => void;
@@ -42,7 +50,15 @@ const crowdColor: maplibregl.ExpressionSpecification = [
   UNKNOWN_CROWD_COLOR,
 ];
 
-export function BusMap({ vehicles, lines, stops, onStopClick, onBoundsChange, className }: Props) {
+export function BusMap({
+  vehicles,
+  lines,
+  stops,
+  heat,
+  onStopClick,
+  onBoundsChange,
+  className,
+}: Props) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const [ready, setReady] = useState(false);
@@ -69,8 +85,14 @@ export function BusMap({ vehicles, lines, stops, onStopClick, onBoundsChange, cl
       );
     };
 
+    const syncVehicleVisibility = () => {
+      if (!map.getLayer('vehicles')) return;
+      map.setLayoutProperty('vehicles', 'visibility', map.getZoom() < 12 ? 'none' : 'visible');
+    };
+
     map.on('load', () => {
       map.addSource('lines', { type: 'geojson', data: EMPTY });
+      map.addSource('heat', { type: 'geojson', data: EMPTY });
       map.addSource('stops', { type: 'geojson', data: EMPTY });
       map.addSource('vehicles', { type: 'geojson', data: EMPTY });
       map.addLayer({
@@ -78,6 +100,17 @@ export function BusMap({ vehicles, lines, stops, onStopClick, onBoundsChange, cl
         type: 'line',
         source: 'lines',
         paint: { 'line-color': '#0154e2', 'line-width': 4, 'line-opacity': 0.8 },
+      });
+      map.addLayer({
+        id: 'heat',
+        type: 'circle',
+        source: 'heat',
+        paint: {
+          'circle-radius': 14,
+          'circle-color': crowdColor,
+          'circle-opacity': 0.35,
+          'circle-blur': 0.6,
+        },
       });
       map.addLayer({
         id: 'stops',
@@ -111,10 +144,12 @@ export function BusMap({ vehicles, lines, stops, onStopClick, onBoundsChange, cl
       );
       map.on('mouseenter', 'stops', () => (map.getCanvas().style.cursor = 'pointer'));
       map.on('mouseleave', 'stops', () => (map.getCanvas().style.cursor = ''));
+      syncVehicleVisibility();
       setReady(true);
       reportBounds();
     });
     map.on('moveend', reportBounds);
+    map.on('zoomend', syncVehicleVisibility);
 
     return () => {
       map.remove();
@@ -135,6 +170,19 @@ export function BusMap({ vehicles, lines, stops, onStopClick, onBoundsChange, cl
       })),
     });
   }, [vehicles, ready]);
+
+  useEffect(() => {
+    const source = mapRef.current?.getSource('heat') as GeoJSONSource | undefined;
+    if (!ready || !source) return;
+    source.setData({
+      type: 'FeatureCollection',
+      features: (heat ?? []).map((c) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [c.lon, c.lat] },
+        properties: { crowd: c.level },
+      })),
+    });
+  }, [heat, ready]);
 
   useEffect(() => {
     const map = mapRef.current;
