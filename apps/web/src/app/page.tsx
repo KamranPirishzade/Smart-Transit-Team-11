@@ -144,9 +144,9 @@ export default function HomePage() {
         onStopClick={(id) => router.push(`/stops/${id}`)}
       />
       <section className="absolute left-3 right-3 top-3 max-w-md space-y-2 md:left-5 md:top-5 md:right-auto">
-        <div className="flex items-center justify-between px-1 text-white drop-shadow-md">
+        <div className="flex items-center justify-between rounded-xl bg-white/95 px-3 py-2 text-brand shadow-lg shadow-slate-900/10 ring-1 ring-white/80">
           <strong className="text-lg tracking-tight">smart-transit</strong>
-          <span className="text-xs font-medium">Bakı · canlı xəritə</span>
+          <span className="text-xs font-medium text-slate-500">Bakı · canlı xəritə</span>
         </div>
         <input
           type="search"

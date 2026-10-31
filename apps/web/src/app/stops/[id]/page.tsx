@@ -55,32 +55,43 @@ function ReportSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-10 flex items-end bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-10 flex items-end justify-center bg-slate-950/40 md:items-center md:p-6" onClick={onClose}>
       <div
-        className="w-full space-y-3 rounded-t-2xl bg-white p-4"
+        className="max-h-[90vh] w-full space-y-4 overflow-y-auto rounded-t-2xl bg-white p-4 shadow-2xl md:max-w-xl md:rounded-2xl md:p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold">Sıxlığı bildir</h2>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand">Avtobus bildirişi</p>
+            <h2 className="mt-1 text-lg font-semibold">Sıxlığı bildir</h2>
+          </div>
+          <button onClick={onClose} aria-label="Pəncərəni bağla" className="rounded-full px-2 py-1 text-xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700">×</button>
+        </div>
         {buses.length === 0 ? (
           <p className="text-sm text-slate-500">Bu dayanacağa yaxınlaşan avtobus yoxdur.</p>
         ) : (
           <>
-            <div className="flex flex-wrap gap-2">
+            <div className="rounded-xl bg-slate-50 p-1.5">
+              <p className="px-2 pb-1 text-xs text-slate-500">Avtobusu seçin</p>
+              <div className="flex flex-wrap gap-1.5">
               {buses.map((a) => (
                 <button
                   key={`${a.routeId}-${a.direction}`}
                   onClick={() => setPicked(a)}
-                  className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                     picked?.routeId === a.routeId && picked.direction === a.direction
                       ? 'bg-brand text-white'
-                      : 'bg-slate-100'
+                      : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:ring-brand'
                   }`}
                 >
-                  {a.routeNumber}
+                  {a.routeNumber}<span className="ml-1 text-xs font-normal opacity-75">→ {a.towards}</span>
                 </button>
               ))}
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div>
+              <p className="mb-2 text-xs text-slate-500">Avtobus nə qədər doludur?</p>
+              <div className="grid grid-cols-2 gap-2">
               {LEVELS.map((level) => (
                 <button
                   key={level}
@@ -92,11 +103,12 @@ function ReportSheet({
                   {CROWD_LABELS[level]}
                 </button>
               ))}
+              </div>
             </div>
           </>
         )}
         {message && <p className="text-sm text-brand">{message}</p>}
-        <button onClick={onClose} className="w-full py-2 text-sm text-slate-500">
+        <button onClick={onClose} className="w-full rounded-lg py-2 text-sm text-slate-500 hover:bg-slate-50">
           Bağla
         </button>
       </div>
