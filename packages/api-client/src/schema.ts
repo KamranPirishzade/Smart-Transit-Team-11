@@ -142,6 +142,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/operator/demo/surge': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Demo: send 10 crowded reports on a route
+     * @description Reports go through the normal flow, so a recommendation appears within seconds.
+     */
+    post: operations['DemoController_surge'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/auth/login': {
     parameters: {
       query?: never;
@@ -153,6 +173,23 @@ export interface paths {
     put?: never;
     /** Operator login (JWT) */
     post: operations['AuthController_login'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/operator/reserves': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Active reserve buses, newest first */
+    get: operations['OperatorController_reserves'];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -562,6 +599,21 @@ export interface components {
       source: 'reports' | 'baseline';
       reportCount: number;
     };
+    SurgeRequestDto: {
+      /**
+       * @description Public bus number
+       * @example 49
+       */
+      routeNumber: string;
+    };
+    SurgeResultDto: {
+      /** @example 37 */
+      routeId: number;
+      /** @example 49 */
+      routeNumber: string;
+      /** @example 10 */
+      reports: number;
+    };
     LoginDto: {
       /** @example operator@example.com */
       email: string;
@@ -579,6 +631,17 @@ export interface components {
       /** @example 28800 */
       expiresInS: number;
       operator: components['schemas']['OperatorDto'];
+    };
+    ActiveReserveDto: {
+      id: string;
+      routeId: number;
+      /** @example 49 */
+      routeNumber: string;
+      direction: number;
+      /** @description Dispatch time */
+      createdAt: string;
+      /** @example reserve-6a73... */
+      vehicleId: string;
     };
     SimClockStateDto: {
       now: string;
@@ -960,6 +1023,46 @@ export interface operations {
       };
     };
   };
+  DemoController_surge: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SurgeRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SurgeResultDto'];
+        };
+      };
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Unknown bus number */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+    };
+  };
   AuthController_login: {
     parameters: {
       query?: never;
@@ -987,6 +1090,33 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+    };
+  };
+  OperatorController_reserves: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ActiveReserveDto'][];
         };
       };
       401: {
