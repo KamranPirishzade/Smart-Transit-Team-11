@@ -6,6 +6,7 @@ import {
 import type { EventPublisher } from '../../../common/events/event-publisher';
 import type { SimClock } from '../../../common/sim-clock/sim-clock';
 import {
+  type ActiveReserve,
   type Recommendation,
   type RecommendationStatus,
   reserveDirectionOf,
@@ -83,5 +84,14 @@ export class DismissRecommendation {
       routeId: recommendation.routeId,
       status: 'DISMISSED',
     });
+  }
+}
+
+/** Reserve buses currently on the road (operator panel list). */
+export class ListActiveReserves {
+  constructor(private readonly recommendations: RecommendationRepository) {}
+
+  execute(): Promise<ActiveReserve[]> {
+    return this.recommendations.listActiveReserves();
   }
 }

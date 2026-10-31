@@ -19,6 +19,7 @@ import { GetOperatorOverview, SetSimClock } from './application/operator-overvie
 import {
   AcceptRecommendation,
   DismissRecommendation,
+  ListActiveReserves,
   ListRecommendations,
 } from './application/recommendation-use-cases';
 import { CrowdingCrowdSignals } from './infrastructure/crowding-crowd-signals';
@@ -42,6 +43,11 @@ import { OperatorController } from './presentation/operator.controller';
     {
       provide: ListRecommendations,
       useFactory: (r: RecommendationRepository) => new ListRecommendations(r),
+      inject: [RECOMMENDATION_REPOSITORY],
+    },
+    {
+      provide: ListActiveReserves,
+      useFactory: (r: RecommendationRepository) => new ListActiveReserves(r),
       inject: [RECOMMENDATION_REPOSITORY],
     },
     {

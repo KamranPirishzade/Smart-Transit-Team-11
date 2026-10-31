@@ -2,6 +2,7 @@ import type {
   Recommendation,
   RecommendationStatus,
   ReserveDispatch,
+  ActiveReserve,
 } from '../domain/recommendation';
 import type { ReportSample } from '../domain/congestion-rule';
 
@@ -36,6 +37,8 @@ export interface RecommendationRepository {
   dismiss(id: string, operatorId: string, at: Date): Promise<boolean>;
   countPending(): Promise<number>;
   countActiveReserves(): Promise<number>;
+  /** Active reserve buses, newest first. */
+  listActiveReserves(): Promise<ActiveReserve[]>;
 }
 
 export interface ReportedRouteSample {

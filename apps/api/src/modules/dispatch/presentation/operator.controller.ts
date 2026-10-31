@@ -30,10 +30,12 @@ import { GetOperatorOverview, SetSimClock } from '../application/operator-overvi
 import {
   AcceptRecommendation,
   DismissRecommendation,
+  ListActiveReserves,
   ListRecommendations,
 } from '../application/recommendation-use-cases';
 import type { Recommendation } from '../domain/recommendation';
 import {
+  ActiveReserveDto,
   OperatorOverviewDto,
   RecommendationDto,
   RecommendationsQueryDto,
@@ -71,7 +73,22 @@ export class OperatorController {
     private readonly acceptRecommendation: AcceptRecommendation,
     private readonly dismissRecommendation: DismissRecommendation,
     private readonly setSimClock: SetSimClock,
+    private readonly listActiveReserves: ListActiveReserves,
   ) {}
+
+  @Get('reserves')
+  @ApiOperation({ summary: 'Active reserve buses, newest first' })
+  @ApiOkResponse({ type: [ActiveReserveDto] })
+  async reserves(): Promise<ActiveReserveDto[]> {
+    return (await this.listActiveReserves.execute()).map((r) => ({
+      id: r.id,
+      routeId: r.routeId,
+      routeNumber: r.routeNumber,
+      direction: r.direction,
+      createdAt: r.createdAt.toISOString(),
+      vehicleId: reserveVehicleId(r.id),
+    }));
+  }
 
   @Get('overview')
   @ApiOperation({ summary: 'Operator dashboard numbers' })

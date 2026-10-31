@@ -75,3 +75,12 @@ export class OperatorOverviewDto {
   @ApiProperty({ description: 'Reports in the last 10 minutes' }) recentReports!: number;
   @ApiProperty({ type: [CrowdedRouteDto] }) crowdedRoutes!: CrowdedRouteDto[];
 }
+
+export class ActiveReserveDto {
+  @ApiProperty() id!: string;
+  @ApiProperty() routeId!: number;
+  @ApiProperty({ example: '49' }) routeNumber!: string;
+  @ApiProperty() direction!: number;
+  @ApiProperty({ description: 'Dispatch time' }) createdAt!: string;
+  @ApiProperty({ example: 'reserve-6a73...' }) vehicleId!: string;
+}

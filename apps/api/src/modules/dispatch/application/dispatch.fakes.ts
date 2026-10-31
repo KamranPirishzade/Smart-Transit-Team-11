@@ -4,6 +4,7 @@ import type {
   Recommendation,
   RecommendationStatus,
   ReserveDispatch,
+  ActiveReserve,
 } from '../domain/recommendation';
 import type {
   CrowdSignals,
@@ -103,6 +104,13 @@ export class InMemoryRecommendations implements RecommendationRepository {
 
   async countActiveReserves(): Promise<number> {
     return this.reserves.filter((r) => r.active).length;
+  }
+
+  async listActiveReserves(): Promise<ActiveReserve[]> {
+    return this.reserves
+      .filter((r) => r.active)
+      .reverse()
+      .map((r) => ({ ...r, routeNumber: String(r.routeId) }));
   }
 }
 

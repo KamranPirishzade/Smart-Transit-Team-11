@@ -3,6 +3,7 @@ import { fixedClock, InMemoryRecommendations, NOW, RecordingPublisher } from './
 import {
   AcceptRecommendation,
   DismissRecommendation,
+  ListActiveReserves,
   ListRecommendations,
 } from './recommendation-use-cases';
 
@@ -113,5 +114,15 @@ describe('ListRecommendations', () => {
     expect(await list.execute('PENDING')).toHaveLength(0);
     expect(await list.execute('DISMISSED')).toHaveLength(1);
     expect(await list.execute()).toHaveLength(1);
+  });
+});
+
+describe('ListActiveReserves', () => {
+  it('lists reserves created by accepted recommendations', async () => {
+    const { recommendations, id, accept } = await setup(2);
+    const list = new ListActiveReserves(recommendations);
+    expect(await list.execute()).toEqual([]);
+    const reserve = await accept.execute(id, 'op-1');
+    expect(await list.execute()).toEqual([{ ...reserve, routeNumber: '49' }]);
   });
 });

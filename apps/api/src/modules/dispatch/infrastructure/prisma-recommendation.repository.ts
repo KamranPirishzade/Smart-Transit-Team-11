@@ -6,6 +6,7 @@ import type {
   Recommendation,
   RecommendationStatus,
   ReserveDispatch,
+  ActiveReserve,
 } from '../domain/recommendation';
 
 const withRoute = { route: { select: { number: true } } } satisfies Prisma.RecommendationInclude;
@@ -92,5 +93,14 @@ export class PrismaRecommendationRepository implements RecommendationRepository 
 
   countActiveReserves(): Promise<number> {
     return this.prisma.reserveDispatch.count({ where: { active: true } });
+  }
+
+  async listActiveReserves(): Promise<ActiveReserve[]> {
+    const rows = await this.prisma.reserveDispatch.findMany({
+      where: { active: true },
+      orderBy: { createdAt: 'desc' },
+      include: withRoute,
+    });
+    return rows.map(({ route, ...row }) => ({ ...row, routeNumber: route.number }));
   }
 }

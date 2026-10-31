@@ -25,6 +25,11 @@ export interface ReserveDispatch {
   createdAt: Date;
 }
 
+/** An active reserve with its public route number (operator list). */
+export interface ActiveReserve extends ReserveDispatch {
+  routeNumber: string;
+}
+
 /** A reserve bus needs a direction; without a dominant one the recommendation falls back to direction 1. */
 export const DEFAULT_RESERVE_DIRECTION = 1;
 
