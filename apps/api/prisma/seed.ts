@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { findWorkspaceRoot, loadRootEnv, selectDatabaseUrl } from '../src/common/config/load-env';
+import { seedOperator } from './seed-operator';
 import { buildSeedPlan } from './seed/build-seed-plan';
 import { loadSeedFiles } from './seed/seed-files';
 import { writeSeedPlan } from './seed/write-seed-plan';
@@ -30,6 +31,7 @@ async function main(): Promise<void> {
   const prisma = new PrismaClient();
   try {
     await writeSeedPlan(prisma, plan, (msg) => console.log(`[seed] ${msg}`));
+    await seedOperator(prisma, process.env, (msg) => console.log(`[seed] ${msg}`));
   } finally {
     await prisma.$disconnect();
   }
