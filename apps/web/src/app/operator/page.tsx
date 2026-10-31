@@ -10,6 +10,7 @@ import { useVehicleStream } from '@/lib/use-vehicle-stream';
 
 type Overview = Schemas['OperatorOverviewDto'];
 type Recommendation = Schemas['RecommendationDto'];
+type CrowdRoute = Schemas['RouteCrowdDto'];
 
 const POLL_MS = 5000;
 const PEAK_TIME = '08:15';
@@ -29,6 +30,7 @@ export default function OperatorPage() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [pending, setPending] = useState<Recommendation[]>([]);
   const [heat, setHeat] = useState<HeatPoint[]>([]);
+  const [crowdRoutes, setCrowdRoutes] = useState<CrowdRoute[]>([]);
   const [bbox, setBbox] = useState<string>();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,19 +44,30 @@ export default function OperatorPage() {
 
   const refresh = useCallback(async () => {
     setError(null);
-    const [o, r, h] = await Promise.all([
-      api.GET('/api/operator/overview'),
-      api.GET('/api/operator/recommendations', { params: { query: { status: 'PENDING' } } }),
-      api.GET('/api/crowding/heatmap'),
-    ]);
+    let o;
+    let r;
+    let h;
+    let c;
+    try {
+      [o, r, h, c] = await Promise.all([
+        api.GET('/api/operator/overview'),
+        api.GET('/api/operator/recommendations', { params: { query: { status: 'PENDING' } } }),
+        api.GET('/api/crowding/heatmap'),
+        api.GET('/api/crowding/routes', { params: { query: { limit: 8 } } }),
+      ]);
+    } catch {
+      setError('API-yə qoşulmaq mümkün olmadı. Backend xidmətinin işlədiyini yoxlayın.');
+      return;
+    }
     if (o.response.status === 401 || r.response.status === 401) return logout();
-    if (!o.data || !r.data || !h.data) {
+    if (!o.data || !r.data || !h.data || !c.data) {
       setError('Operator məlumatlarını yeniləmək mümkün olmadı.');
       return;
     }
     setOverview(o.data);
     setPending(r.data);
     setHeat(h.data.cells.map((c) => ({ lat: c.lat, lon: c.lon, level: c.level })));
+    setCrowdRoutes(c.data);
   }, [logout]);
 
   useEffect(() => {
@@ -76,7 +89,14 @@ export default function OperatorPage() {
       action === 'accept'
         ? '/api/operator/recommendations/{id}/accept'
         : '/api/operator/recommendations/{id}/dismiss';
-    const { response } = await api.POST(path, { params: { path: { id } } });
+    let response: Response;
+    try {
+      ({ response } = await api.POST(path, { params: { path: { id } } }));
+    } catch {
+      setError('Tövsiyəni həll etmək mümkün olmadı.');
+      setBusyId(null);
+      return;
+    }
     if (response.status === 401) return logout();
     if (!response.ok) setError('Tövsiyəni həll etmək mümkün olmadı.');
     setBusyId(null);
@@ -86,7 +106,14 @@ export default function OperatorPage() {
   async function setClock(time: string | null) {
     setClockBusy(true);
     const body = time ? { time } : { reset: true };
-    const { response } = await api.PUT('/api/operator/sim-clock', { body: body as never });
+    let response: Response;
+    try {
+      ({ response } = await api.PUT('/api/operator/sim-clock', { body: body as never }));
+    } catch {
+      setError('API-yə qoşulmaq mümkün olmadı.');
+      setClockBusy(false);
+      return;
+    }
     if (response.status === 401) return logout();
     if (!response.ok) setError('Simulyasiya vaxtını dəyişmək mümkün olmadı.');
     setClockBusy(false);
@@ -135,7 +162,10 @@ export default function OperatorPage() {
         </div>
         <p className="text-xs text-slate-400">Simulyasiya — mövqelər və ETA real deyil.</p>
 
-        <h2 className="text-sm font-semibold text-slate-700">Tövsiyələr</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-700">Tövsiyələr</h2>
+          <span className="text-xs text-slate-400">5 saniyədən bir yenilənir</span>
+        </div>
         {pending.length === 0 && (
           <p className="text-sm text-slate-500">Hazırda gözləyən tövsiyə yoxdur.</p>
         )}
@@ -167,17 +197,18 @@ export default function OperatorPage() {
           </article>
         ))}
 
-        {overview && overview.crowdedRoutes.length > 0 && (
+        {crowdRoutes.length > 0 && (
           <>
-            <h2 className="text-sm font-semibold text-slate-700">Ən sıx marşrutlar</h2>
-            <ul className="space-y-1 text-sm">
-              {overview.crowdedRoutes.map((c) => (
-                <li
-                  key={c.routeId}
-                  className="flex justify-between rounded-lg bg-white px-3 py-1.5"
-                >
-                  <span>Marşrut #{c.routeId}</span>
-                  <span>{crowdLabel(c.level as never)}</span>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-700">Sıxlıq üzrə marşrutlar</h2>
+              <span className="text-xs text-slate-400">son 10 dəqiqə</span>
+            </div>
+            <ul className="space-y-2 text-sm">
+              {crowdRoutes.map((c) => (
+                <li key={c.routeId} className="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+                  <div className="flex justify-between"><span className="font-semibold">Marşrut #{c.routeId}</span><span className="font-medium">{crowdLabel(c.level as never)}</span></div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-coral" style={{ width: `${Math.min(100, Math.round(c.score * 100))}%` }} /></div>
+                  <div className="mt-1 text-xs text-slate-500">{c.reportCount} sərnişin bildirişi · skor {c.score.toFixed(2)}</div>
                 </li>
               ))}
             </ul>

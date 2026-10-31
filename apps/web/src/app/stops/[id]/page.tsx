@@ -111,18 +111,31 @@ export default function StopPage() {
   const [missing, setMissing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [arrivalsError, setArrivalsError] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const load = useCallback(async () => {
-    const { data } = await api.GET('/api/stops/{id}/arrivals', {
-      params: { path: { id: stopId } },
-    });
+    setArrivalsError(false);
+    let data;
+    try {
+      ({ data } = await api.GET('/api/stops/{id}/arrivals', {
+        params: { path: { id: stopId } },
+      }));
+    } catch {
+      data = undefined;
+    }
     if (data) setArrivals(data);
+    else setArrivalsError(true);
   }, [stopId]);
 
   useEffect(() => {
     const first = setTimeout(async () => {
-      const { data } = await api.GET('/api/stops/{id}', { params: { path: { id: stopId } } });
+      let data;
+      try {
+        ({ data } = await api.GET('/api/stops/{id}', { params: { path: { id: stopId } } }));
+      } catch {
+        data = undefined;
+      }
       if (data) setStop(data);
       else setMissing(true);
       if (!data) setError(true);
@@ -152,7 +165,13 @@ export default function StopPage() {
       <Link href="/" className="text-sm text-brand">
         ← Xəritə
       </Link>
-      <h1 className="text-xl font-semibold">{stop?.name ?? 'Yüklənir…'}</h1>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand">Dayanacaq {stop?.code ?? ''}</p>
+          <h1 className="mt-1 text-2xl font-semibold">{stop?.name ?? 'Yüklənir…'}</h1>
+        </div>
+        {stop?.isHub && <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-brand">Qovşaq</span>}
+      </div>
       {loading && <p className="rounded-xl bg-white p-4 text-sm text-slate-500 ring-1 ring-slate-200">Dayanacaq məlumatları yüklənir…</p>}
       {error && !missing && <p className="rounded-xl bg-white p-4 text-sm text-coral ring-1 ring-slate-200">Dayanacaq məlumatlarını yükləmək mümkün olmadı.</p>}
       {stop && (
@@ -161,11 +180,28 @@ export default function StopPage() {
           <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200"><span className="block text-xs text-slate-500">Marşrutlar</span>{stop.routes.length}</div>
         </div>
       )}
+      {stop && stop.routes.length > 0 && (
+        <section className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold">Bu dayanacaqdan keçən marşrutlar</h2>
+            <span className="text-xs text-slate-500">{stop.routes.length} marşrut</span>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {stop.routes.map((route) => (
+              <span key={`${route.routeId}-${route.direction}`} className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-brand">
+                {route.routeNumber}<span className="ml-1 font-normal text-slate-600">→ {route.towards}</span>
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
       {arrivals && (
         <p className="text-xs text-slate-500">
           Simulyasiya vaxtı {arrivals.simTime}. Gəliş vaxtları simulyasiyadır.
         </p>
       )}
+      {arrivalsError && <p className="rounded-xl bg-white p-4 text-sm text-coral ring-1 ring-slate-200">Gəliş məlumatlarını yeniləmək mümkün olmadı.</p>}
+      {!arrivals && !loading && !arrivalsError && <p className="rounded-xl bg-white p-4 text-sm text-slate-500 ring-1 ring-slate-200">Gəliş məlumatları gözlənilir…</p>}
       <ul className="space-y-2">
         {arrivals?.arrivals.length === 0 && (
           <li className="text-sm text-slate-500">Yaxınlaşan avtobus yoxdur.</li>

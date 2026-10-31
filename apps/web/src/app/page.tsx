@@ -26,6 +26,7 @@ export default function HomePage() {
   const [searchError, setSearchError] = useState(false);
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState(false);
+  const [query, setQuery] = useState('');
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const vehicles = useVehicleStream(selected ? { routeId: selected.id } : null);
 
@@ -34,9 +35,14 @@ export default function HomePage() {
     async function load(lat: number, lon: number) {
       setNearbyLoading(true);
       setNearbyError(false);
-      const { data } = await api.GET('/api/stops/nearby', {
-        params: { query: { lat, lon, radius: 600, limit: 12 } },
-      });
+      let data;
+      try {
+        ({ data } = await api.GET('/api/stops/nearby', {
+          params: { query: { lat, lon, radius: 600, limit: 12 } },
+        }));
+      } catch {
+        data = undefined;
+      }
       if (!cancelled) {
         setNearbyLoading(false);
         if (data) {
@@ -61,6 +67,7 @@ export default function HomePage() {
   }, []);
 
   function onSearch(value: string) {
+    setQuery(value);
     clearTimeout(timer.current);
     const query = value.trim();
     if (!query) {
@@ -71,7 +78,12 @@ export default function HomePage() {
     timer.current = setTimeout(async () => {
       setSearchLoading(true);
       setSearchError(false);
-      const { data } = await api.GET('/api/routes', { params: { query: { query, limit: 8 } } });
+      let data;
+      try {
+        ({ data } = await api.GET('/api/routes', { params: { query: { query, limit: 8 } } }));
+      } catch {
+        data = undefined;
+      }
       setSearchLoading(false);
       if (data) {
         setResults(data);
@@ -88,7 +100,12 @@ export default function HomePage() {
     if (!route.hasStops) return;
     setRouteLoading(true);
     setRouteError(false);
-    const { data } = await api.GET('/api/routes/{id}', { params: { path: { id: route.id } } });
+    let data;
+    try {
+      ({ data } = await api.GET('/api/routes/{id}', { params: { path: { id: route.id } } }));
+    } catch {
+      data = undefined;
+    }
     setRouteLoading(false);
     if (data) {
       setSelected(data);
@@ -114,6 +131,10 @@ export default function HomePage() {
     return [...unique.values()];
   }, [selected, nearby]);
 
+  const routeStopCount = selected
+    ? new Set(selected.directions.flatMap((direction) => direction.stops.map((stop) => stop.stopId))).size
+    : 0;
+
   return (
     <main className="relative h-full">
       <BusMap
@@ -123,11 +144,16 @@ export default function HomePage() {
         onStopClick={(id) => router.push(`/stops/${id}`)}
       />
       <section className="absolute left-3 right-3 top-3 max-w-md space-y-2 md:left-5 md:top-5 md:right-auto">
+        <div className="flex items-center justify-between px-1 text-white drop-shadow-md">
+          <strong className="text-lg tracking-tight">smart-transit</strong>
+          <span className="text-xs font-medium">Bakı · canlı xəritə</span>
+        </div>
         <input
           type="search"
           placeholder="Marşrut nömrəsi və ya son dayanacaq"
           onChange={(e) => onSearch(e.target.value)}
           aria-label="Marşrut axtarışı"
+          value={query}
           className="w-full rounded-2xl bg-white px-4 py-3.5 shadow-lg shadow-slate-900/10 ring-1 ring-slate-200 focus:outline-brand"
         />
         {searchLoading && <p className="rounded-xl bg-white px-4 py-2 text-sm text-slate-500 shadow-md">Axtarılır…</p>}
@@ -166,13 +192,29 @@ export default function HomePage() {
         {routeLoading && <p className="rounded-xl bg-white px-4 py-3 text-sm text-slate-500 shadow-md">Marşrut yüklənir…</p>}
         {routeError && <p className="rounded-xl bg-white px-4 py-3 text-sm text-coral shadow-md">Marşrut məlumatı yüklənmədi.</p>}
         {selected && (
-          <div className="rounded-xl bg-white px-4 py-3 shadow-md ring-1 ring-slate-200">
-            <div className="font-semibold text-brand">Marşrut {selected.number}</div>
-            <div className="text-sm text-slate-600">
-              {selected.firstPoint} – {selected.lastPoint} · {vehicles.length} avtobus xətdədir
+          <div className="rounded-2xl bg-white p-4 shadow-lg shadow-slate-900/10 ring-1 ring-slate-200">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-lg font-semibold text-brand">Marşrut {selected.number}</div>
+                <div className="text-sm text-slate-600">{selected.firstPoint} – {selected.lastPoint}</div>
+              </div>
+              <button onClick={() => setSelected(null)} className="text-xs font-medium text-slate-500 hover:text-brand">Bağla</button>
             </div>
-            <div className="text-xs text-slate-500">
-              Gediş vaxtı simulyasiyadır. Gəlişi görmək üçün dayanacağa toxunun.
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+              <div className="rounded-lg bg-blue-50 p-2"><b className="block text-base text-brand">{vehicles.length}</b>avtobus</div>
+              <div className="rounded-lg bg-slate-50 p-2"><b className="block text-base text-slate-800">{routeStopCount}</b>dayanacaq</div>
+              <div className="rounded-lg bg-slate-50 p-2"><b className="block text-base text-slate-800">{selected.durationMin}</b>dəqiqə</div>
+            </div>
+            <div className="mt-3 space-y-1.5">
+              {selected.directions.map((direction) => (
+                <div key={direction.direction} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
+                  <span><b>{direction.direction === 1 ? '1-ci' : '2-ci'} istiqamət</b><span className="ml-2 text-slate-500">{direction.towards}</span></span>
+                  <span className="text-xs text-slate-500">{direction.stops.length} dayanacaq</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 text-xs text-slate-500">
+              Mövqelər və gəliş vaxtları simulyasiyadır. Dayanacağa toxunaraq ETA və sıxlıq bildirişi göndərin.
             </div>
           </div>
         )}

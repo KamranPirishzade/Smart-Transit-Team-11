@@ -14,9 +14,14 @@ export default function OperatorLoginPage() {
     const form = new FormData(event.currentTarget);
     setBusy(true);
     setError(null);
-    const { data } = await api.POST('/api/auth/login', {
-      body: { email: String(form.get('email')), password: String(form.get('password')) },
-    });
+    let data;
+    try {
+      ({ data } = await api.POST('/api/auth/login', {
+        body: { email: String(form.get('email')), password: String(form.get('password')) },
+      }));
+    } catch {
+      data = undefined;
+    }
     setBusy(false);
     if (!data) {
       setError('E-poçt və ya parol yanlışdır.');
