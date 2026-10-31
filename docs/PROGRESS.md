@@ -54,30 +54,18 @@ Last commit before this file: `2fd8cdb`.
 - Demo data from the live check (reports, one ACCEPTED recommendation, one active reserve) is still in the
   main DB; remove it before the real demo.
 
-## Next steps (approved by the user; continue from here in a new session)
+## M4-M6 done
 
-Rules: build passes after each part, then commit + push. Reports: 3 lines. No deep research.
-
-0. Fixes: `demo:surge --route` takes the bus NUMBER (49 → id 37); `npm run db:reset-ops` clears
-   `crowd_reports`, `recommendations`, `reserve_dispatches` (the user runs it).
-1. M4 web (minimal Next.js, brand #0154E2, coral #F0643C, UI in Azerbaijani). Order b → c → d.
-   a) `packages/api-client`: openapi-typescript + openapi-fetch from the Swagger JSON.
-   b) `/operator/login` (JWT) and `/operator`: recommendation cards (accept/dismiss, 5 s polling), KPI cards,
-      MapLibre + OpenFreeMap map with buses (crowd colour) and reserve buses, "Pik saatı göstər" (sim-clock 08:15).
-   c) `/`: map + route search, selected route line and live buses (SSE).
-   d) `/stops/[id]`: ETA list; "Sıxlığı bildir" sheet (4 levels, POST /reports, deviceId in localStorage).
-   No animation, heatmap grid or slider.
-2. M5: 4 e2e scenarios (10 CROWDED → PENDING; no token → 401; arrivals sorted; bad level → 400) behind the
-   `DATABASE_URL_TEST` guard (`assertSeparateTestDatabase`). Skip web Vitest.
-3. M6: multi-stage Dockerfiles for api and web, `docker-compose.yml` (db, api, web), `README.md` (short
-   description, setup from zero, scripts, URLs, note that Docker is untested). No new docs (ADR is enough).
-
-Final report: last commit hash, test count, coverage, run commands (5 lines).
+- Fixes: `demo:surge --route` takes the bus number; `npm run db:reset-ops` (run it before the real demo).
+- M4 web: `packages/api-client`, `/operator/login`, `/operator` (cards, KPIs, map, "Pik saatı göstər"),
+  `/` (search, line, live buses), `/stops/[id]` (ETA, report sheet). Web Vitest skipped.
+- M5: 4 e2e scenarios in `apps/api/test` (`npm run test:e2e`, test DB only).
+- M6: Dockerfiles, `docker-compose.yml`, `README.md` (Docker untested).
+- Not browser-tested: the web pages were only type-checked, linted and built. Open them once with the API running.
 
 ## Open items
 
 - M5: the e2e tests must call `assertSeparateTestDatabase` (in `common/config/load-env.ts`) first.
-- Root `README.md` is still UTF-16; rewrite it in M6.
 - Cut order if M4 ends later than 3:00 elapsed: web Vitest → demo-clock slider → heatmap grid
   → operator SSE.
 
