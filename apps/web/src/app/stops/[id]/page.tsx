@@ -61,7 +61,10 @@ function ReportSheet({
       >
         <h2 className="text-lg font-semibold">Sıxlığı bildir</h2>
         {buses.length === 0 ? (
-          <p className="text-sm text-slate-500">Bu dayanacağa yaxınlaşan avtobus yoxdur.</p>
+          <p className="rounded-xl bg-slate-50 p-3 text-sm text-slate-500">
+            Bu dayanacağa yaxınlaşan avtobus yoxdur. Bildiriş göndərmək üçün canlı avtobus
+            göründükdən sonra yenidən cəhd edin.
+          </p>
         ) : (
           <>
             <div className="flex flex-wrap gap-2">
@@ -215,10 +218,8 @@ export default function StopPage() {
           onClose={() => setSheetOpen(false)}
         />
       )}
-      <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-20 mx-auto flex max-w-lg justify-around rounded-t-[26px] bg-white/95 px-3 pt-2 shadow-[0_-8px_24px_rgba(18,55,96,0.08)] md:hidden">
-        <Link href="/" className="flex flex-col items-center gap-1 px-5 py-2 text-[11px] text-slate-500"><span className="text-lg">⌁</span>Nəqliyyat</Link>
-        <span className="flex flex-col items-center gap-1 rounded-2xl bg-[#eaf1ff] px-5 py-2 text-[11px] font-bold text-brand"><span className="text-lg">⌾</span>Dayanacaq</span>
-        <Link href="/profile" className="flex flex-col items-center gap-1 px-5 py-2 text-[11px] text-slate-500"><span className="text-lg">♙</span>Profil</Link>
+      <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-20 mx-auto flex max-w-lg justify-center rounded-t-[26px] bg-white/95 px-3 pt-2 shadow-[0_-8px_24px_rgba(18,55,96,0.08)] md:hidden">
+        <Link href="/" className="flex flex-col items-center gap-1 rounded-2xl bg-[#eaf1ff] px-8 py-2 text-[11px] font-bold text-brand"><span className="text-lg">⌁</span>Nəqliyyata qayıt</Link>
       </nav>
     </main>
   );

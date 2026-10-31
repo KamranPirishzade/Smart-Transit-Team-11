@@ -58,9 +58,9 @@ Last commit before this file: `2fd8cdb`.
 
 - Fixes: `demo:surge --route` takes the bus number; `npm run db:reset-ops` (run it before the real demo).
 - M4 web: `packages/api-client`, `/operator/login`, `/operator` (cards, KPIs, map, "Pik saatı göstər"),
-  `/` (search, line, live buses), `/stops/[id]` (ETA, report sheet), `/profile` (mobile rewards/profile
-  surface). Refreshed passenger/operator UI with responsive cards, bottom navigation, simulation badges,
-  stop map preview and live status surfaces. Web Vitest skipped.
+  `/` (search, line, live buses), `/stops/[id]` (ETA, report sheet). Refreshed the existing passenger
+  and operator surfaces with responsive cards, nearby-stop actions, simulation badges and live status
+  surfaces. No additional passenger page is part of the application. Web Vitest skipped.
 - M5: 4 e2e scenarios in `apps/api/test` (`npm run test:e2e`, test DB only).
 - M6: Dockerfiles, `docker-compose.yml`, `README.md` (Docker untested).
 - Web typecheck and lint pass (existing generated MapLibre worker warnings only). Production build is
