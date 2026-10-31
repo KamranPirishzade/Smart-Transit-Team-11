@@ -50,6 +50,6 @@ import { StopsController } from './presentation/stops.controller';
       inject: [STOP_REPOSITORY],
     },
   ],
-  exports: [GetRouteDemand],
+  exports: [GetRouteDemand, SearchRoutes, GetRouteDetails],
 })
 export class NetworkModule {}

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { EVENT_PUBLISHER, type EventPublisher } from '../../common/events/event-publisher';
 import { SIM_CLOCK, type SimClock } from '../../common/sim-clock/sim-clock';
+import { AuthModule } from '../auth/public-api';
 import { NetworkModule } from '../network/public-api';
 import {
   GetCrowdHeatmap,
@@ -15,19 +16,32 @@ import {
   type CrowdReportRepository,
   type RouteDemandReader,
 } from './application/crowding.ports';
+import { ROUTE_LOCATOR, type RouteLocator, SimulateSurge } from './application/simulate-surge';
 import { SubmitCrowdReport } from './application/submit-crowd-report';
+import { NetworkRouteLocator } from './infrastructure/network-route-locator';
 import { NetworkRouteDemandReader } from './infrastructure/network-route-demand.reader';
 import { PrismaCrowdReportRepository } from './infrastructure/prisma-crowd-report.repository';
 import { CrowdingController } from './presentation/crowding.controller';
+import { DemoController } from './presentation/demo.controller';
 import { DeviceThrottlerGuard, REPORT_RATE_LIMIT } from './presentation/device-throttler.guard';
 
 @Module({
-  imports: [NetworkModule, ThrottlerModule.forRoot([{ name: 'default', ...REPORT_RATE_LIMIT }])],
-  controllers: [CrowdingController],
+  imports: [
+    AuthModule,
+    NetworkModule,
+    ThrottlerModule.forRoot([{ name: 'default', ...REPORT_RATE_LIMIT }]),
+  ],
+  controllers: [CrowdingController, DemoController],
   providers: [
     DeviceThrottlerGuard,
     { provide: CROWD_REPORT_REPOSITORY, useClass: PrismaCrowdReportRepository },
     { provide: ROUTE_DEMAND_READER, useClass: NetworkRouteDemandReader },
+    { provide: ROUTE_LOCATOR, useClass: NetworkRouteLocator },
+    {
+      provide: SimulateSurge,
+      useFactory: (l: RouteLocator, s: SubmitCrowdReport) => new SimulateSurge(l, s),
+      inject: [ROUTE_LOCATOR, SubmitCrowdReport],
+    },
     {
       provide: RecentReports,
       useFactory: (r: CrowdReportRepository, c: SimClock) => new RecentReports(r, c),
