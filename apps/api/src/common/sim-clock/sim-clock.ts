@@ -65,3 +65,12 @@ export class AdjustableSimClock implements SimClock {
     };
   }
 }
+
+export const SIM_CLOCK_CONTROL = Symbol('SIM_CLOCK_CONTROL');
+
+/** Operator-facing control over the demo time (implemented by AdjustableSimClock). */
+export interface SimClockControl {
+  setBakuTime(hhmm: string): void;
+  reset(): void;
+  state(): SimClockState;
+}

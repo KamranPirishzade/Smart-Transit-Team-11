@@ -25,3 +25,10 @@ export class InvalidInputError extends DomainError {
     super(message);
   }
 }
+
+/** Missing or wrong credentials / token. */
+export class UnauthorizedError extends DomainError {
+  constructor(message = 'Invalid credentials') {
+    super(message);
+  }
+}

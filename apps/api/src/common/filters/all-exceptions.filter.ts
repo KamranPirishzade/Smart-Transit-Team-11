@@ -7,7 +7,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { ConflictError, InvalidInputError, NotFoundError } from '../errors/domain-errors';
+import {
+  ConflictError,
+  InvalidInputError,
+  NotFoundError,
+  UnauthorizedError,
+} from '../errors/domain-errors';
 
 export interface ErrorBody {
   statusCode: number;
@@ -21,6 +26,7 @@ function domainErrorStatus(exception: unknown): HttpStatus | undefined {
   if (exception instanceof NotFoundError) return HttpStatus.NOT_FOUND;
   if (exception instanceof ConflictError) return HttpStatus.CONFLICT;
   if (exception instanceof InvalidInputError) return HttpStatus.BAD_REQUEST;
+  if (exception instanceof UnauthorizedError) return HttpStatus.UNAUTHORIZED;
   return undefined;
 }
 
