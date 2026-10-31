@@ -11,7 +11,10 @@ Machine: Windows, no Docker. DB: Neon PostgreSQL, connection strings only in roo
 - `presentation/` — controllers, DTOs (Swagger decorators), SSE, event listeners. No business logic.
 - `<name>.module.ts` — DI wiring: port token → adapter.
 - Cross-module: writes/reactions via events (`common/events`); sync reads via a port in the consumer,
-  bound in the module to a provider the other module exports. Never import another module's internals.
+  bound in the module to a provider the other module exports. Never import another module's internals:
+  only `modules/<other>/public-api.ts` (ESLint enforces).
+- Shared kernel (framework-free, used by several modules): `common/geo`, `common/domain`,
+  `common/errors` (domain errors → HTTP in `AllExceptionsFilter`), `common/sim-clock`.
 
 ## Conventions
 
@@ -41,6 +44,16 @@ Machine: Windows, no Docker. DB: Neon PostgreSQL, connection strings only in roo
 - **Errors:** `{ statusCode, error, message, path, timestamp }`. Swagger at `/api/docs`, Bearer auth.
 - **Honesty:** vehicle positions, ETAs and baseline crowding are simulated. Stops, routes, lines and
   demand are real (AYNA public map service, opendata.az).
+
+## Commits
+
+- [Conventional Commits](https://www.conventionalcommits.org): `type(scope): summary` (imperative, lower case, no period).
+- Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`.
+  Scopes: `api`, `web`, `network`, `simulation`, `crowding`, `dispatch`, `auth`, `realtime`,
+  `health`, `geo`, `seed`, `db`, `api-client`, `docker`, `deps`.
+- Group changes: one logical change per commit (a feature together with its tests). Do not make
+  one big commit per milestone. Each commit must pass typecheck, lint and tests.
+- Never rewrite pushed history. Push to `origin main` after each milestone.
 
 ## Commands
 
