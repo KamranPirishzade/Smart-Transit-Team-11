@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@smart-transit/api-client": "0.1.0",
     "maplibre-gl": "6.16.0",
     "next": "16.4.3",
     "react": "19.3.1",

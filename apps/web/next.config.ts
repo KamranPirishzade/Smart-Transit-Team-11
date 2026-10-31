@@ -5,6 +5,7 @@ const repoRoot = path.join(__dirname, '..', '..');
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  transpilePackages: ['@smart-transit/api-client'],
   outputFileTracingRoot: repoRoot,
   turbopack: { root: repoRoot },
 };
