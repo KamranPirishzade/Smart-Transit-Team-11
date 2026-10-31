@@ -13,10 +13,12 @@ import {
   type RouteNetworkSource,
 } from './application/simulation.ports';
 import { DEFAULT_SIMULATION_CONFIG, type SimulationConfig } from './domain/simulation.config';
-import { NoCrowdDataReader } from './infrastructure/no-crowd-data.reader';
+import { CrowdingRouteCrowdReader } from './infrastructure/crowding-route-crowd.reader';
 import { PrismaReserveVehicleSource } from './infrastructure/prisma-reserve-vehicle.source';
 import { PrismaRouteNetworkSource } from './infrastructure/prisma-route-network.source';
+import { CrowdingModule } from '../crowding/public-api';
 import { ArrivalsController } from './presentation/arrivals.controller';
+import { ReserveEventsListener } from './presentation/reserve-events.listener';
 import { VehiclesController } from './presentation/vehicles.controller';
 
 const USE_CASE_DEPS = [
@@ -35,13 +37,15 @@ type UseCaseDeps = [
 ];
 
 @Module({
+  imports: [CrowdingModule],
   controllers: [VehiclesController, ArrivalsController],
   providers: [
     { provide: SIMULATION_CONFIG, useValue: DEFAULT_SIMULATION_CONFIG },
     { provide: ROUTE_NETWORK_SOURCE, useClass: PrismaRouteNetworkSource },
     PrismaReserveVehicleSource,
+    ReserveEventsListener,
     { provide: RESERVE_VEHICLE_SOURCE, useExisting: PrismaReserveVehicleSource },
-    { provide: ROUTE_CROWD_READER, useClass: NoCrowdDataReader },
+    { provide: ROUTE_CROWD_READER, useClass: CrowdingRouteCrowdReader },
     {
       provide: SimulationNetwork,
       useFactory: (source: RouteNetworkSource) => new SimulationNetwork(source),

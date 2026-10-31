@@ -6,3 +6,4 @@ export {
   VehiclesQueryDto,
   VehiclesSnapshotDto,
 } from './presentation/simulation.dto';
+export { reserveVehicleId } from './domain/schedule-simulator';
