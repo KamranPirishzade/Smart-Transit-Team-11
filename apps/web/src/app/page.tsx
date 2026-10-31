@@ -28,7 +28,9 @@ export default function HomePage() {
   const [routeError, setRouteError] = useState(false);
   const [query, setQuery] = useState('');
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const vehicles = useVehicleStream(selected ? { routeId: selected.id } : null);
+  const [bbox, setBbox] = useState<string>();
+  // Selected route: only its buses; otherwise every bus in the visible area.
+  const vehicles = useVehicleStream(selected ? { routeId: selected.id } : bbox ? { bbox } : null);
 
   useEffect(() => {
     let cancelled = false;
@@ -132,7 +134,9 @@ export default function HomePage() {
   }, [selected, nearby]);
 
   const routeStopCount = selected
-    ? new Set(selected.directions.flatMap((direction) => direction.stops.map((stop) => stop.stopId))).size
+    ? new Set(
+        selected.directions.flatMap((direction) => direction.stops.map((stop) => stop.stopId)),
+      ).size
     : 0;
 
   return (
@@ -142,6 +146,7 @@ export default function HomePage() {
         lines={lines}
         stops={stops}
         onStopClick={(id) => router.push(`/stops/${id}`)}
+        onBoundsChange={setBbox}
       />
       <section className="absolute left-3 right-3 top-3 max-w-md space-y-2 md:left-5 md:top-5 md:right-auto">
         <div className="flex items-center justify-between rounded-xl bg-white/95 px-3 py-2 text-brand shadow-lg shadow-slate-900/10 ring-1 ring-white/80">
@@ -156,8 +161,16 @@ export default function HomePage() {
           value={query}
           className="w-full rounded-2xl bg-white px-4 py-3.5 shadow-lg shadow-slate-900/10 ring-1 ring-slate-200 focus:outline-brand"
         />
-        {searchLoading && <p className="rounded-xl bg-white px-4 py-2 text-sm text-slate-500 shadow-md">Axtarılır…</p>}
-        {searchError && <p className="rounded-xl bg-white px-4 py-2 text-sm text-coral shadow-md">Marşrutları yükləmək mümkün olmadı.</p>}
+        {searchLoading && (
+          <p className="rounded-xl bg-white px-4 py-2 text-sm text-slate-500 shadow-md">
+            Axtarılır…
+          </p>
+        )}
+        {searchError && (
+          <p className="rounded-xl bg-white px-4 py-2 text-sm text-coral shadow-md">
+            Marşrutları yükləmək mümkün olmadı.
+          </p>
+        )}
         {(results.length > 0 || searched) && (
           <ul className="max-h-72 overflow-y-auto rounded-xl bg-white shadow-md ring-1 ring-slate-200">
             {results.length === 0 && (
@@ -189,32 +202,60 @@ export default function HomePage() {
             ))}
           </ul>
         )}
-        {routeLoading && <p className="rounded-xl bg-white px-4 py-3 text-sm text-slate-500 shadow-md">Marşrut yüklənir…</p>}
-        {routeError && <p className="rounded-xl bg-white px-4 py-3 text-sm text-coral shadow-md">Marşrut məlumatı yüklənmədi.</p>}
+        {routeLoading && (
+          <p className="rounded-xl bg-white px-4 py-3 text-sm text-slate-500 shadow-md">
+            Marşrut yüklənir…
+          </p>
+        )}
+        {routeError && (
+          <p className="rounded-xl bg-white px-4 py-3 text-sm text-coral shadow-md">
+            Marşrut məlumatı yüklənmədi.
+          </p>
+        )}
         {selected && (
           <div className="rounded-2xl bg-white p-4 shadow-lg shadow-slate-900/10 ring-1 ring-slate-200">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-lg font-semibold text-brand">Marşrut {selected.number}</div>
-                <div className="text-sm text-slate-600">{selected.firstPoint} – {selected.lastPoint}</div>
+                <div className="text-sm text-slate-600">
+                  {selected.firstPoint} – {selected.lastPoint}
+                </div>
               </div>
-              <button onClick={() => setSelected(null)} className="text-xs font-medium text-slate-500 hover:text-brand">Bağla</button>
+              <button
+                onClick={() => setSelected(null)}
+                className="text-xs font-medium text-slate-500 hover:text-brand"
+              >
+                Bağla
+              </button>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-              <div className="rounded-lg bg-blue-50 p-2"><b className="block text-base text-brand">{vehicles.length}</b>avtobus</div>
-              <div className="rounded-lg bg-slate-50 p-2"><b className="block text-base text-slate-800">{routeStopCount}</b>dayanacaq</div>
-              <div className="rounded-lg bg-slate-50 p-2"><b className="block text-base text-slate-800">{selected.durationMin}</b>dəqiqə</div>
+              <div className="rounded-lg bg-blue-50 p-2">
+                <b className="block text-base text-brand">{vehicles.length}</b>avtobus
+              </div>
+              <div className="rounded-lg bg-slate-50 p-2">
+                <b className="block text-base text-slate-800">{routeStopCount}</b>dayanacaq
+              </div>
+              <div className="rounded-lg bg-slate-50 p-2">
+                <b className="block text-base text-slate-800">{selected.durationMin}</b>dəqiqə
+              </div>
             </div>
             <div className="mt-3 space-y-1.5">
               {selected.directions.map((direction) => (
-                <div key={direction.direction} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
-                  <span><b>{direction.direction === 1 ? '1-ci' : '2-ci'} istiqamət</b><span className="ml-2 text-slate-500">{direction.towards}</span></span>
+                <div
+                  key={direction.direction}
+                  className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm"
+                >
+                  <span>
+                    <b>{direction.direction === 1 ? '1-ci' : '2-ci'} istiqamət</b>
+                    <span className="ml-2 text-slate-500">{direction.towards}</span>
+                  </span>
                   <span className="text-xs text-slate-500">{direction.stops.length} dayanacaq</span>
                 </div>
               ))}
             </div>
             <div className="mt-3 text-xs text-slate-500">
-              Mövqelər və gəliş vaxtları simulyasiyadır. Dayanacağa toxunaraq ETA və sıxlıq bildirişi göndərin.
+              Mövqelər və gəliş vaxtları simulyasiyadır. Dayanacağa toxunaraq ETA və sıxlıq
+              bildirişi göndərin.
             </div>
           </div>
         )}
@@ -222,14 +263,21 @@ export default function HomePage() {
           <div className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-slate-900/10 ring-1 ring-slate-200">
             <div className="text-sm font-semibold text-brand">Yaxın dayanacaqlar</div>
             {nearbyLoading && <p className="mt-2 text-sm text-slate-500">Dayanacaqlar yüklənir…</p>}
-            {nearbyError && <p className="mt-2 text-sm text-coral">Yaxın dayanacaqları yükləmək mümkün olmadı.</p>}
+            {nearbyError && (
+              <p className="mt-2 text-sm text-coral">Yaxın dayanacaqları yükləmək mümkün olmadı.</p>
+            )}
             {!nearbyLoading && !nearbyError && nearby.length === 0 && (
               <p className="mt-2 text-sm text-slate-500">Yaxınlıqda dayanacaq tapılmadı.</p>
             )}
             <div className="mt-2 grid gap-1">
               {nearby.slice(0, 5).map((stop) => (
-                <button key={stop.id} onClick={() => router.push(`/stops/${stop.id}`)} className="flex items-center justify-between rounded-lg px-2 py-2 text-left text-sm hover:bg-slate-100">
-                  <span>{stop.name}</span><span className="text-brand">›</span>
+                <button
+                  key={stop.id}
+                  onClick={() => router.push(`/stops/${stop.id}`)}
+                  className="flex items-center justify-between rounded-lg px-2 py-2 text-left text-sm hover:bg-slate-100"
+                >
+                  <span>{stop.name}</span>
+                  <span className="text-brand">›</span>
                 </button>
               ))}
             </div>

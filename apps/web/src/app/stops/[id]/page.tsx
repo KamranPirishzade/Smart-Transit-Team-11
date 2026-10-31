@@ -55,17 +55,28 @@ function ReportSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-10 flex items-end justify-center bg-slate-950/40 md:items-center md:p-6" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-10 flex items-end justify-center bg-slate-950/40 md:items-center md:p-6"
+      onClick={onClose}
+    >
       <div
         className="max-h-[90vh] w-full space-y-4 overflow-y-auto rounded-t-2xl bg-white p-4 shadow-2xl md:max-w-xl md:rounded-2xl md:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand">Avtobus bildirişi</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand">
+              Avtobus bildirişi
+            </p>
             <h2 className="mt-1 text-lg font-semibold">Sıxlığı bildir</h2>
           </div>
-          <button onClick={onClose} aria-label="Pəncərəni bağla" className="rounded-full px-2 py-1 text-xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700">×</button>
+          <button
+            onClick={onClose}
+            aria-label="Pəncərəni bağla"
+            className="rounded-full px-2 py-1 text-xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+          >
+            ×
+          </button>
         </div>
         {buses.length === 0 ? (
           <p className="text-sm text-slate-500">Bu dayanacağa yaxınlaşan avtobus yoxdur.</p>
@@ -74,41 +85,45 @@ function ReportSheet({
             <div className="rounded-xl bg-slate-50 p-1.5">
               <p className="px-2 pb-1 text-xs text-slate-500">Avtobusu seçin</p>
               <div className="flex flex-wrap gap-1.5">
-              {buses.map((a) => (
-                <button
-                  key={`${a.routeId}-${a.direction}`}
-                  onClick={() => setPicked(a)}
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                    picked?.routeId === a.routeId && picked.direction === a.direction
-                      ? 'bg-brand text-white'
-                      : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:ring-brand'
-                  }`}
-                >
-                  {a.routeNumber}<span className="ml-1 text-xs font-normal opacity-75">→ {a.towards}</span>
-                </button>
-              ))}
+                {buses.map((a) => (
+                  <button
+                    key={`${a.routeId}-${a.direction}`}
+                    onClick={() => setPicked(a)}
+                    className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                      picked?.routeId === a.routeId && picked.direction === a.direction
+                        ? 'bg-brand text-white'
+                        : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:ring-brand'
+                    }`}
+                  >
+                    {a.routeNumber}
+                    <span className="ml-1 text-xs font-normal opacity-75">→ {a.towards}</span>
+                  </button>
+                ))}
               </div>
             </div>
             <div>
               <p className="mb-2 text-xs text-slate-500">Avtobus nə qədər doludur?</p>
               <div className="grid grid-cols-2 gap-2">
-              {LEVELS.map((level) => (
-                <button
-                  key={level}
-                  disabled={busy}
-                  onClick={() => void send(level)}
-                  className="rounded-xl px-3 py-4 font-medium text-white disabled:opacity-60"
-                  style={{ backgroundColor: CROWD_COLORS[level] }}
-                >
-                  {CROWD_LABELS[level]}
-                </button>
-              ))}
+                {LEVELS.map((level) => (
+                  <button
+                    key={level}
+                    disabled={busy}
+                    onClick={() => void send(level)}
+                    className="rounded-xl px-3 py-4 font-medium text-white disabled:opacity-60"
+                    style={{ backgroundColor: CROWD_COLORS[level] }}
+                  >
+                    {CROWD_LABELS[level]}
+                  </button>
+                ))}
               </div>
             </div>
           </>
         )}
         {message && <p className="text-sm text-brand">{message}</p>}
-        <button onClick={onClose} className="w-full rounded-lg py-2 text-sm text-slate-500 hover:bg-slate-50">
+        <button
+          onClick={onClose}
+          className="w-full rounded-lg py-2 text-sm text-slate-500 hover:bg-slate-50"
+        >
           Bağla
         </button>
       </div>
@@ -180,17 +195,37 @@ export default function StopPage() {
       </Link>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand">Dayanacaq {stop?.code ?? ''}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand">
+            Dayanacaq {stop?.code ?? ''}
+          </p>
           <h1 className="mt-1 text-2xl font-semibold">{stop?.name ?? 'Yüklənir…'}</h1>
         </div>
-        {stop?.isHub && <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-brand">Qovşaq</span>}
+        {stop?.isHub && (
+          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-brand">
+            Qovşaq
+          </span>
+        )}
       </div>
-      {loading && <p className="rounded-xl bg-white p-4 text-sm text-slate-500 ring-1 ring-slate-200">Dayanacaq məlumatları yüklənir…</p>}
-      {error && !missing && <p className="rounded-xl bg-white p-4 text-sm text-coral ring-1 ring-slate-200">Dayanacaq məlumatlarını yükləmək mümkün olmadı.</p>}
+      {loading && (
+        <p className="rounded-xl bg-white p-4 text-sm text-slate-500 ring-1 ring-slate-200">
+          Dayanacaq məlumatları yüklənir…
+        </p>
+      )}
+      {error && !missing && (
+        <p className="rounded-xl bg-white p-4 text-sm text-coral ring-1 ring-slate-200">
+          Dayanacaq məlumatlarını yükləmək mümkün olmadı.
+        </p>
+      )}
       {stop && (
         <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200"><span className="block text-xs text-slate-500">Status</span>{stop.isHub ? 'Nəqliyyat qovşağı' : 'Adi dayanacaq'}</div>
-          <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200"><span className="block text-xs text-slate-500">Marşrutlar</span>{stop.routes.length}</div>
+          <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+            <span className="block text-xs text-slate-500">Status</span>
+            {stop.isHub ? 'Nəqliyyat qovşağı' : 'Adi dayanacaq'}
+          </div>
+          <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+            <span className="block text-xs text-slate-500">Marşrutlar</span>
+            {stop.routes.length}
+          </div>
         </div>
       )}
       {stop && stop.routes.length > 0 && (
@@ -201,8 +236,12 @@ export default function StopPage() {
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             {stop.routes.map((route) => (
-              <span key={`${route.routeId}-${route.direction}`} className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-brand">
-                {route.routeNumber}<span className="ml-1 font-normal text-slate-600">→ {route.towards}</span>
+              <span
+                key={`${route.routeId}-${route.direction}`}
+                className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-brand"
+              >
+                {route.routeNumber}
+                <span className="ml-1 font-normal text-slate-600">→ {route.towards}</span>
               </span>
             ))}
           </div>
@@ -213,8 +252,16 @@ export default function StopPage() {
           Simulyasiya vaxtı {arrivals.simTime}. Gəliş vaxtları simulyasiyadır.
         </p>
       )}
-      {arrivalsError && <p className="rounded-xl bg-white p-4 text-sm text-coral ring-1 ring-slate-200">Gəliş məlumatlarını yeniləmək mümkün olmadı.</p>}
-      {!arrivals && !loading && !arrivalsError && <p className="rounded-xl bg-white p-4 text-sm text-slate-500 ring-1 ring-slate-200">Gəliş məlumatları gözlənilir…</p>}
+      {arrivalsError && (
+        <p className="rounded-xl bg-white p-4 text-sm text-coral ring-1 ring-slate-200">
+          Gəliş məlumatlarını yeniləmək mümkün olmadı.
+        </p>
+      )}
+      {!arrivals && !loading && !arrivalsError && (
+        <p className="rounded-xl bg-white p-4 text-sm text-slate-500 ring-1 ring-slate-200">
+          Gəliş məlumatları gözlənilir…
+        </p>
+      )}
       <ul className="space-y-2">
         {arrivals?.arrivals.length === 0 && (
           <li className="text-sm text-slate-500">Yaxınlaşan avtobus yoxdur.</li>
