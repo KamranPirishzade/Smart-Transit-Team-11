@@ -60,7 +60,8 @@ Last commit before this file: `2fd8cdb`.
 - M4 web: `packages/api-client`, `/operator/login`, `/operator` (cards, KPIs, map, "Pik saatı göstər"),
   `/` (search, nearby stops, line, live buses), `/stops/[id]` (ETA, stop summary, report sheet).
   Frontend polish adds responsive cards, route directions and stop counts, served-route details,
-  crowding-route signals, explicit loading/error states, API error handling, and simulated-data messaging.
+  crowding-route signals, interpolated vehicle movement, operator SSE updates, vehicle-aware reports,
+  explicit loading/error states, API error handling, and simulated-data messaging.
 - M5: 4 e2e scenarios in `apps/api/test` (`npm run test:e2e`, test DB only).
 - M6: Dockerfiles, `docker-compose.yml`, `README.md` (Docker untested).
 - Not browser-tested: the web pages were only type-checked, linted and built. Open them once with the API running.
@@ -68,8 +69,8 @@ Last commit before this file: `2fd8cdb`.
 ## Open items
 
 - M5: the e2e tests must call `assertSeparateTestDatabase` (in `common/config/load-env.ts`) first.
-- Cut order if M4 ends later than 3:00 elapsed: web Vitest → demo-clock slider → heatmap grid
-  → operator SSE.
+- Remaining intentional cuts: web Vitest, demo-clock slider, and heatmap grid. The operator SSE
+  update path is now enabled alongside the required polling.
 
 ## Scripts
 

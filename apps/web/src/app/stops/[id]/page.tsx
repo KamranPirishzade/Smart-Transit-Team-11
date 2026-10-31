@@ -35,6 +35,7 @@ function ReportSheet({
       body: {
         routeId: picked.routeId,
         direction: picked.direction as 1 | 2,
+        vehicleId: picked.vehicleId,
         stopId: stop.id,
         level,
         lat: stop.lat,

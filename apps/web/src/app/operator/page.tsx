@@ -4,7 +4,7 @@ import type { Schemas } from '@smart-transit/api-client';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { BusMap, type HeatPoint } from '@/components/bus-map';
-import { api, getToken, setToken } from '@/lib/api';
+import { API_URL, api, getToken, setToken } from '@/lib/api';
 import { crowdLabel } from '@/lib/crowd';
 import { useVehicleStream } from '@/lib/use-vehicle-stream';
 
@@ -82,6 +82,18 @@ export default function OperatorPage() {
       clearInterval(timer);
     };
   }, [refresh, router]);
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    const source = new EventSource(`${API_URL}/api/stream/operator?token=${encodeURIComponent(token)}`);
+    const update = () => void refresh();
+    source.addEventListener('overview', update);
+    source.addEventListener('dispatch.recommendation.created', update);
+    source.addEventListener('dispatch.recommendation.resolved', update);
+    source.addEventListener('dispatch.reserve.added', update);
+    return () => source.close();
+  }, [refresh]);
 
   async function resolve(id: string, action: 'accept' | 'dismiss') {
     setBusyId(id);
