@@ -2,7 +2,7 @@
  * Demo: floods one route with "crowded" passenger reports so the congestion rule fires and a
  * reserve-bus recommendation appears in the operator panel.
  *
- *   npm run demo:surge -- --route 49 [--count 12] [--api http://localhost:4000/api]
+ *   npm run demo:surge -- --route 49 (bus number) [--count 12] [--api http://localhost:4000/api]
  *
  * The API must be running. Operator credentials come from the root .env (OPERATOR_EMAIL/PASSWORD);
  * they are used only to read the recommendation back and are never printed.
@@ -10,7 +10,7 @@
 import path from 'node:path';
 
 interface Args {
-  routeId: number;
+  routeNumber: string;
   count: number;
   api: string;
 }
@@ -37,13 +37,13 @@ function parseArgs(argv: string[]): Args {
     const index = argv.indexOf(flag);
     return index >= 0 ? argv[index + 1] : undefined;
   };
-  const routeId = Number(read('--route'));
-  if (!Number.isInteger(routeId) || routeId <= 0) {
-    throw new Error('Usage: npm run demo:surge -- --route <routeId> [--count 12] [--api <url>]');
+  const routeNumber = read('--route')?.trim();
+  if (!routeNumber) {
+    throw new Error('Usage: npm run demo:surge -- --route <bus number> [--count 12] [--api <url>]');
   }
   const count = Number(read('--count') ?? 12);
   return {
-    routeId,
+    routeNumber,
     count: Number.isInteger(count) && count > 0 ? count : 12,
     api: (read('--api') ?? `http://localhost:${process.env.PORT ?? 4000}/api`).replace(/\/$/, ''),
   };
@@ -73,10 +73,16 @@ async function main(): Promise<void> {
   } catch {
     // no .env: rely on the real environment
   }
-  const { routeId, count, api } = parseArgs(process.argv.slice(2));
+  const { routeNumber, count, api } = parseArgs(process.argv.slice(2));
   const email = process.env.OPERATOR_EMAIL;
   const password = process.env.OPERATOR_PASSWORD;
   if (!email || !password) throw new Error('OPERATOR_EMAIL and OPERATOR_PASSWORD must be set');
+
+  const matches = await call<{ id: number; number: string }[]>(
+    `${api}/routes?query=${encodeURIComponent(routeNumber)}&limit=250`,
+  );
+  const routeId = matches.find((r) => r.number.toLowerCase() === routeNumber.toLowerCase())?.id;
+  if (routeId === undefined) throw new Error(`No route with number ${routeNumber}`);
 
   const route = await call<RouteDetails>(`${api}/routes/${routeId}`);
   const stop = route.directions[0]?.stops[0] ?? BAKU_CENTRE;

@@ -18,6 +18,7 @@
     "db:seed": "prisma db seed",
     "db:seed:test": "cross-env PRISMA_TARGET=test SEED_ROUTES=37 prisma db seed",
     "db:seed:operator": "tsx prisma/seed-operator-cli.ts",
+    "db:reset-ops": "tsx prisma/reset-ops.ts",
     "db:stats": "tsx prisma/db-stats.ts",
     "db:stats:test": "cross-env PRISMA_TARGET=test tsx prisma/db-stats.ts"
   },

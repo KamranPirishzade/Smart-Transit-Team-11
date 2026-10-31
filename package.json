@@ -23,6 +23,7 @@
     "format:check": "prettier --check .",
     "db:migrate": "npm run prisma:migrate -w @smart-transit/api",
     "db:seed": "npm run db:seed -w @smart-transit/api",
+    "db:reset-ops": "npm run db:reset-ops -w @smart-transit/api",
     "db:studio": "npm run prisma:studio -w @smart-transit/api"
   },
   "devDependencies": {
