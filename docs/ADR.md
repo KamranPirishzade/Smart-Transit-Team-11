@@ -83,3 +83,23 @@ them and logs a warning for each case:
 
 Stop distances along each line are projected monotonically, so loop routes do not jump backwards.
 Unit tests check every real direction against these rules.
+
+## ADR-007 — Simulation parameters come from the real data
+
+**Status:** accepted (2026-10-31)
+
+- **Speed** = direction length / `durationMin`, clamped to 10–30 km/h. The source `durationMin` is
+  one-way (median ~18 km/h), while `lengthKm` covers both directions.
+- **Headway** comes from BakuBus demand: 50 passengers per run, spread over 17 service hours,
+  clamped to 4–20 min. Routes without demand data use 15 min.
+- **Peaks** (07:30–09:30, 17:30–19:30): headway ×0.7 and speed ×0.7.
+- Positions and ETAs are computed by the same pure formula, so they always agree.
+
+## ADR-008 — Module boundaries through `public-api.ts`
+
+**Status:** accepted (2026-10-31)
+
+A module may import another module only through that module's `modules/<name>/public-api.ts`.
+The domain layer and the shared kernel (`common/geo`, `common/domain`) import no framework, and
+the application layer never imports Prisma or outer layers. ESLint (`no-restricted-imports` in
+`apps/api/eslint.config.mjs`) enforces all of this, so a violation fails `npm run lint`.

@@ -55,6 +55,14 @@ Machine: Windows, no Docker. DB: Neon PostgreSQL, connection strings only in roo
   one big commit per milestone. Each commit must pass typecheck, lint and tests.
 - Never rewrite pushed history. Push to `origin main` after each milestone.
 
+## Token qənaəti
+
+- `data/seed/` fayllarını tam oxuma; lazım olan hissəni kiçik skriptlə çıxar.
+- Böyük faylları tam oxuma; lazım olan funksiyanı Grep ilə tap, yalnız o hissəni oxu.
+- Test/build çıxışından yalnız xülasəni və xətaları göstər (`| tail -30`).
+- Mərhələ hesabatları 10 sətirdən çox olmasın.
+- Hər mərhələnin sonunda `docs/PROGRESS.md`-ni yenilə.
+
 ## Commands
 
 - `npm run dev` · `npm test` · `npm run test:e2e` · `npm run lint` · `npm run typecheck` · `npm run build`
