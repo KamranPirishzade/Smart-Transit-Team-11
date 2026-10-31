@@ -144,26 +144,45 @@ export default function StopPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-full max-w-lg flex-col gap-3 p-4">
-      <Link href="/" className="text-sm text-brand">
-        ← Xəritə
-      </Link>
-      <h1 className="text-xl font-semibold">{stop?.name ?? 'Yüklənir…'}</h1>
+    <main className="app-shell mx-auto flex min-h-full max-w-lg flex-col gap-4 px-3 pb-28 pt-5">
+      <Link href="/" className="w-fit text-sm font-semibold text-brand">← Xəritəyə qayıt</Link>
+      <div className="space-y-1 px-1">
+        {stop?.isHub && <span className="rounded-full bg-[#dce9ff] px-2.5 py-1 text-[11px] font-bold text-brand">AYNA hub</span>}
+        <h1 className="mt-2 text-[30px] font-extrabold tracking-tight">{stop?.name ?? 'Yüklənir…'}</h1>
+        <p className="text-sm text-slate-500">{stop ? `${stop.name} · ${stop.routes.length} marşrut` : 'Dayanacaq məlumatları yüklənir'}</p>
+      </div>
+      <div className="glass-card relative h-40 overflow-hidden bg-[#e9eef5]">
+        <div className="absolute inset-0 opacity-50" style={{ backgroundImage: 'linear-gradient(30deg, transparent 48%, #cbd5e1 49%, #cbd5e1 51%, transparent 52%), linear-gradient(120deg, transparent 48%, #d7dee8 49%, #d7dee8 51%, transparent 52%)', backgroundSize: '56px 56px' }} />
+        <div className="absolute left-[33%] top-[52%] grid h-8 w-8 place-items-center rounded-full bg-brand text-xs font-bold text-white shadow-lg">1</div>
+        <div className="absolute left-[56%] top-[35%] grid h-8 w-8 place-items-center rounded-full bg-brand text-xs font-bold text-white shadow-lg">2</div>
+        <div className="absolute left-[22%] top-[28%] grid h-8 w-8 place-items-center rounded-full bg-brand text-xs font-bold text-white shadow-lg">3</div>
+        <span className="absolute bottom-2 right-3 rounded-full bg-white/90 px-2 py-1 text-[10px] text-slate-500">OpenFreeMap</span>
+      </div>
+      <div className="glass-card grid grid-cols-2 gap-4 p-5">
+        <div><div className="text-lg font-bold">—</div><div className="text-xs text-slate-500">Metro yaxınlığı</div></div>
+        <div><div className="text-lg font-bold">{stop?.routes.length ?? '—'}</div><div className="text-xs text-slate-500">Marşrut</div></div>
+        <div><div className="text-lg font-bold">—</div><div className="text-xs text-slate-500">Skuter parkı</div></div>
+        <div><div className="text-lg font-bold">—</div><div className="text-xs text-slate-500">Velosiped</div></div>
+      </div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold">Avtobuslar</h2>
+        <span className="text-xs text-slate-500">Canlı yenilənir</span>
+      </div>
+      <div className="glass-card overflow-hidden">
+        <div className="border-b border-slate-100 px-4 py-3 text-sm font-semibold">⌾ Dayanacaq: Hamısı⌄</div>
       {arrivals && (
-        <p className="text-xs text-slate-500">
-          Simulyasiya vaxtı {arrivals.simTime}. Gəliş vaxtları simulyasiyadır.
-        </p>
+          <p className="border-b border-slate-100 px-4 py-2 text-[11px] text-slate-400">Simulyasiya vaxtı {arrivals.simTime} · hər 5 saniyədə yenilənir</p>
       )}
-      <ul className="space-y-2">
+      <ul>
         {arrivals?.arrivals.length === 0 && (
           <li className="text-sm text-slate-500">Yaxınlaşan avtobus yoxdur.</li>
         )}
         {arrivals?.arrivals.map((a) => (
           <li
             key={a.vehicleId}
-            className="flex items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-slate-200"
+            className="flex items-center gap-3 border-b border-slate-100 p-3 last:border-0"
           >
-            <span className="min-w-12 rounded-md bg-brand px-2 py-1 text-center font-semibold text-white">
+            <span className="grid min-w-11 place-items-center rounded-xl bg-brand px-2 py-2 text-sm font-bold text-white">
               {a.routeNumber}
             </span>
             <div className="flex-1 text-sm">
@@ -177,14 +196,15 @@ export default function StopPage() {
                 {a.isReserve && <b className="text-coral"> · ehtiyat avtobus</b>}
               </div>
             </div>
-            <span className="text-lg font-semibold">{a.etaMin} dəq</span>
+            <span className="text-sm font-bold text-brand">{a.etaMin < 1 ? '<1' : a.etaMin} dəq</span>
           </li>
         ))}
       </ul>
+      </div>
       <button
         disabled={!stop}
         onClick={() => setSheetOpen(true)}
-        className="mt-auto rounded-xl bg-coral px-4 py-3 font-medium text-white disabled:opacity-60"
+        className="fixed bottom-20 left-4 right-4 z-10 mx-auto max-w-lg rounded-2xl bg-coral px-4 py-3.5 font-bold text-white shadow-xl disabled:opacity-60"
       >
         Sıxlığı bildir
       </button>
@@ -195,6 +215,11 @@ export default function StopPage() {
           onClose={() => setSheetOpen(false)}
         />
       )}
+      <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-20 mx-auto flex max-w-lg justify-around rounded-t-[26px] bg-white/95 px-3 pt-2 shadow-[0_-8px_24px_rgba(18,55,96,0.08)] md:hidden">
+        <Link href="/" className="flex flex-col items-center gap-1 px-5 py-2 text-[11px] text-slate-500"><span className="text-lg">⌁</span>Nəqliyyat</Link>
+        <span className="flex flex-col items-center gap-1 rounded-2xl bg-[#eaf1ff] px-5 py-2 text-[11px] font-bold text-brand"><span className="text-lg">⌾</span>Dayanacaq</span>
+        <Link href="/profile" className="flex flex-col items-center gap-1 px-5 py-2 text-[11px] text-slate-500"><span className="text-lg">♙</span>Profil</Link>
+      </nav>
     </main>
   );
 }

@@ -1,11 +1,8 @@
 import type { Metadata, Viewport } from 'next';
-import { Onest } from 'next/font/google';
 import './globals.css';
 
-const onest = Onest({ subsets: ['latin', 'cyrillic'], variable: '--font-onest' });
-
 export const metadata: Metadata = {
-  title: 'smart-transit',
+  title: 'Smart Transit',
   description: 'Bakı avtobusları: real vaxt ETA və sərnişin sıxlığı',
 };
 
@@ -17,7 +14,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="az" className={onest.variable}>
+    <html lang="az">
       <body className="font-sans">{children}</body>
     </html>
   );

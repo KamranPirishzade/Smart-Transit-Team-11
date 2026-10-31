@@ -27,12 +27,12 @@ export default function OperatorLoginPage() {
   }
 
   return (
-    <main className="flex min-h-full items-center justify-center bg-slate-50 p-6">
+    <main className="app-shell flex items-center justify-center bg-[#f4f7fc] p-6">
       <form
         onSubmit={onSubmit}
-        className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200"
+        className="w-full max-w-md space-y-5 rounded-[28px] bg-white p-8 shadow-[0_16px_50px_rgba(18,55,96,0.12)]"
       >
-        <h1 className="text-xl font-semibold text-brand">Operator girişi</h1>
+        <div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand text-xl text-white">✦</span><div><h1 className="text-2xl font-extrabold">Operator girişi</h1><p className="text-sm text-slate-500">Smart Transit idarəetmə paneli</p></div></div>
         <label className="block text-sm">
           E-poçt
           <input
@@ -40,7 +40,7 @@ export default function OperatorLoginPage() {
             type="email"
             required
             autoComplete="username"
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            className="mt-2 w-full rounded-xl border-0 bg-[#f4f7fc] px-4 py-3 outline-none ring-1 ring-slate-200 focus:ring-brand"
           />
         </label>
         <label className="block text-sm">
@@ -50,14 +50,14 @@ export default function OperatorLoginPage() {
             type="password"
             required
             autoComplete="current-password"
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            className="mt-2 w-full rounded-xl border-0 bg-[#f4f7fc] px-4 py-3 outline-none ring-1 ring-slate-200 focus:ring-brand"
           />
         </label>
         {error && <p className="text-sm text-coral">{error}</p>}
         <button
           type="submit"
           disabled={busy}
-          className="w-full rounded-lg bg-brand px-4 py-2 font-medium text-white hover:bg-brand-dark disabled:opacity-60"
+          className="w-full rounded-xl bg-brand px-4 py-3 font-bold text-white hover:bg-brand-dark disabled:opacity-60"
         >
           {busy ? 'Gözləyin…' : 'Daxil ol'}
         </button>
