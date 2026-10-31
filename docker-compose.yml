@@ -1,13 +1,30 @@
 # Not tested on the development machine (no Docker there). Variables come from the root .env.
 services:
   db:
-    image: postgres:17
+    image: postgres:16-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:-smart_transit}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER:-postgres}']
+      interval: 5s
+      retries: 10
+
+  db-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB_TEST:-smart_transit_test}
+    ports:
+      - '${POSTGRES_TEST_PORT:-5433}:5432'
+    volumes:
+      - db-test-data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER:-postgres}']
       interval: 5s
@@ -43,3 +60,4 @@ services:
 
 volumes:
   db-data:
+  db-test-data:

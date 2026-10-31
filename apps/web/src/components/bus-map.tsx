@@ -7,6 +7,9 @@ import { useEffect, useRef, useState } from 'react';
 import { CROWD_COLORS, UNKNOWN_CROWD_COLOR } from '@/lib/crowd';
 import type { Vehicle } from '@/lib/use-vehicle-stream';
 
+// Turbopack does not emit the worker's sibling shared module; serve both from /public.
+maplibregl.setWorkerUrl('/maplibre/maplibre-gl-worker.mjs');
+
 export interface MapStop {
   id: number;
   name: string;
@@ -21,11 +24,14 @@ export interface HeatPoint {
 }
 
 interface Props {
-  vehicles: Vehicle[];
+  vehicles?: Vehicle[];
   lines?: [number, number][][];
   stops?: MapStop[];
   /** Crowding report cells (operator map). */
   heat?: HeatPoint[];
+  center?: [number, number];
+  zoom?: number;
+  showControls?: boolean;
   onStopClick?: (id: number) => void;
   /** minLon,minLat,maxLon,maxLat of the visible area. */
   onBoundsChange?: (bbox: string) => void;
@@ -51,10 +57,13 @@ const crowdColor: maplibregl.ExpressionSpecification = [
 ];
 
 export function BusMap({
-  vehicles,
+  vehicles = [],
   lines,
   stops,
   heat,
+  center = BAKU,
+  zoom = 11.5,
+  showControls = true,
   onStopClick,
   onBoundsChange,
   className,
@@ -72,11 +81,13 @@ export function BusMap({
     const map = new maplibregl.Map({
       container: container.current,
       style: STYLE_URL,
-      center: BAKU,
-      zoom: 11.5,
+      center,
+      zoom,
     });
     mapRef.current = map;
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    if (showControls) {
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    }
 
     const reportBounds = () => {
       const b = map.getBounds();
