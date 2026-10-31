@@ -90,3 +90,25 @@ export function pointAtDistance(
   const t = segLen === 0 ? 0 : (distanceM - cumulative[lo]!) / segLen;
   return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 }
+
+/** Initial bearing from a to b in degrees, 0 = north, clockwise. */
+export function bearingDeg(a: LonLat, b: LonLat): number {
+  const toRad = Math.PI / 180;
+  const y = Math.sin((b[0] - a[0]) * toRad) * Math.cos(b[1] * toRad);
+  const x =
+    Math.cos(a[1] * toRad) * Math.sin(b[1] * toRad) -
+    Math.sin(a[1] * toRad) * Math.cos(b[1] * toRad) * Math.cos((b[0] - a[0]) * toRad);
+  return (((Math.atan2(y, x) / toRad) % 360) + 360) % 360;
+}
+
+/** Direction of travel (degrees) of the segment that contains `distanceM`. */
+export function bearingAtDistance(
+  line: readonly LonLat[],
+  cumulative: readonly number[],
+  distanceM: number,
+): number {
+  if (line.length < 2) return 0;
+  let i = 0;
+  while (i < cumulative.length - 2 && cumulative[i + 1]! <= distanceM) i++;
+  return bearingDeg(line[i]!, line[i + 1]!);
+}

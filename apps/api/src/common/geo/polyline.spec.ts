@@ -1,6 +1,13 @@
 import type { LonLat } from './geo.types';
 import { haversineM } from './haversine';
-import { cumulativeDistances, lineLengthM, pointAtDistance, projectOntoLine } from './polyline';
+import {
+  bearingAtDistance,
+  bearingDeg,
+  cumulativeDistances,
+  lineLengthM,
+  pointAtDistance,
+  projectOntoLine,
+} from './polyline';
 
 // ~1.1 km due east steps along a parallel near Baku
 const line: LonLat[] = [
@@ -52,5 +59,25 @@ describe('polyline', () => {
     const mid = pointAtDistance(line, cum, cum[1]! / 2);
     expect(mid[0]).toBeCloseTo(49.805, 4);
     expect(() => pointAtDistance([], [], 1)).toThrow();
+  });
+});
+
+describe('bearing', () => {
+  it('points east along a parallel and north along a meridian', () => {
+    expect(bearingDeg([49.8, 40.4], [49.81, 40.4])).toBeCloseTo(90, 0);
+    expect(bearingDeg([49.8, 40.4], [49.8, 40.41])).toBeCloseTo(0, 5);
+    expect(bearingDeg([49.8, 40.41], [49.8, 40.4])).toBeCloseTo(180, 5);
+  });
+
+  it('uses the segment that contains the distance', () => {
+    const bent: LonLat[] = [
+      [49.8, 40.4],
+      [49.81, 40.4],
+      [49.81, 40.41],
+    ];
+    const cum = cumulativeDistances(bent);
+    expect(bearingAtDistance(bent, cum, 10)).toBeCloseTo(90, 0);
+    expect(bearingAtDistance(bent, cum, cum[1]! + 10)).toBeCloseTo(0, 0);
+    expect(bearingAtDistance([bent[0]!], [0], 0)).toBe(0);
   });
 });
