@@ -109,6 +109,8 @@ export default function StopPage() {
   const [stop, setStop] = useState<Stop | null>(null);
   const [arrivals, setArrivals] = useState<Arrivals | null>(null);
   const [missing, setMissing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const load = useCallback(async () => {
@@ -123,7 +125,9 @@ export default function StopPage() {
       const { data } = await api.GET('/api/stops/{id}', { params: { path: { id: stopId } } });
       if (data) setStop(data);
       else setMissing(true);
+      if (!data) setError(true);
       void load();
+      setLoading(false);
     }, 0);
     const timer = setInterval(() => void load(), POLL_MS);
     return () => {
@@ -149,6 +153,14 @@ export default function StopPage() {
         ← Xəritə
       </Link>
       <h1 className="text-xl font-semibold">{stop?.name ?? 'Yüklənir…'}</h1>
+      {loading && <p className="rounded-xl bg-white p-4 text-sm text-slate-500 ring-1 ring-slate-200">Dayanacaq məlumatları yüklənir…</p>}
+      {error && !missing && <p className="rounded-xl bg-white p-4 text-sm text-coral ring-1 ring-slate-200">Dayanacaq məlumatlarını yükləmək mümkün olmadı.</p>}
+      {stop && (
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200"><span className="block text-xs text-slate-500">Status</span>{stop.isHub ? 'Nəqliyyat qovşağı' : 'Adi dayanacaq'}</div>
+          <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200"><span className="block text-xs text-slate-500">Marşrutlar</span>{stop.routes.length}</div>
+        </div>
+      )}
       {arrivals && (
         <p className="text-xs text-slate-500">
           Simulyasiya vaxtı {arrivals.simTime}. Gəliş vaxtları simulyasiyadır.
@@ -182,11 +194,11 @@ export default function StopPage() {
         ))}
       </ul>
       <button
-        disabled={!stop}
+        disabled={!stop || !arrivals?.arrivals.length}
         onClick={() => setSheetOpen(true)}
         className="mt-auto rounded-xl bg-coral px-4 py-3 font-medium text-white disabled:opacity-60"
       >
-        Sıxlığı bildir
+        {arrivals?.arrivals.length ? 'Sıxlığı bildir' : 'Bildirmək üçün avtobus gözləyin'}
       </button>
       {sheetOpen && stop && (
         <ReportSheet

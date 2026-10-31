@@ -58,7 +58,8 @@ Last commit before this file: `2fd8cdb`.
 
 - Fixes: `demo:surge --route` takes the bus number; `npm run db:reset-ops` (run it before the real demo).
 - M4 web: `packages/api-client`, `/operator/login`, `/operator` (cards, KPIs, map, "Pik saatı göstər"),
-  `/` (search, line, live buses), `/stops/[id]` (ETA, report sheet). Web Vitest skipped.
+  `/` (search, nearby stops, line, live buses), `/stops/[id]` (ETA, stop summary, report sheet).
+  Frontend polish adds responsive cards, explicit loading/error states, API error handling, and simulated-data messaging.
 - M5: 4 e2e scenarios in `apps/api/test` (`npm run test:e2e`, test DB only).
 - M6: Dockerfiles, `docker-compose.yml`, `README.md` (Docker untested).
 - Not browser-tested: the web pages were only type-checked, linted and built. Open them once with the API running.

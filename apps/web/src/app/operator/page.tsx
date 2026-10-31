@@ -31,6 +31,8 @@ export default function OperatorPage() {
   const [heat, setHeat] = useState<HeatPoint[]>([]);
   const [bbox, setBbox] = useState<string>();
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [clockBusy, setClockBusy] = useState(false);
   const vehicles = useVehicleStream(bbox ? { bbox } : null);
 
   const logout = useCallback(() => {
@@ -39,17 +41,20 @@ export default function OperatorPage() {
   }, [router]);
 
   const refresh = useCallback(async () => {
+    setError(null);
     const [o, r, h] = await Promise.all([
       api.GET('/api/operator/overview'),
       api.GET('/api/operator/recommendations', { params: { query: { status: 'PENDING' } } }),
       api.GET('/api/crowding/heatmap'),
     ]);
     if (o.response.status === 401 || r.response.status === 401) return logout();
-    if (o.data) setOverview(o.data);
-    if (r.data) setPending(r.data);
-    if (h.data) {
-      setHeat(h.data.cells.map((c) => ({ lat: c.lat, lon: c.lon, level: c.level })));
+    if (!o.data || !r.data || !h.data) {
+      setError('Operator məlumatlarını yeniləmək mümkün olmadı.');
+      return;
     }
+    setOverview(o.data);
+    setPending(r.data);
+    setHeat(h.data.cells.map((c) => ({ lat: c.lat, lon: c.lon, level: c.level })));
   }, [logout]);
 
   useEffect(() => {
@@ -71,13 +76,20 @@ export default function OperatorPage() {
       action === 'accept'
         ? '/api/operator/recommendations/{id}/accept'
         : '/api/operator/recommendations/{id}/dismiss';
-    await api.POST(path, { params: { path: { id } } });
+    const { response } = await api.POST(path, { params: { path: { id } } });
+    if (response.status === 401) return logout();
+    if (!response.ok) setError('Tövsiyəni həll etmək mümkün olmadı.');
     setBusyId(null);
     await refresh();
   }
 
   async function setClock(time: string | null) {
-    await api.PUT('/api/operator/sim-clock', { body: { time } as never });
+    setClockBusy(true);
+    const body = time ? { time } : { reset: true };
+    const { response } = await api.PUT('/api/operator/sim-clock', { body: body as never });
+    if (response.status === 401) return logout();
+    if (!response.ok) setError('Simulyasiya vaxtını dəyişmək mümkün olmadı.');
+    setClockBusy(false);
     await refresh();
   }
 
@@ -99,6 +111,7 @@ export default function OperatorPage() {
           <Kpi label="Son 10 dəq. bildiriş" value={overview?.recentReports ?? '–'} />
           <Kpi label="Xəritədəki avtobus" value={vehicles.length} hint={`${reserves} ehtiyat`} />
         </div>
+        {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
         <div className="flex items-center gap-2 rounded-xl bg-white p-3 ring-1 ring-slate-200">
           <div className="flex-1 text-sm">
@@ -106,14 +119,16 @@ export default function OperatorPage() {
             {overview?.clock.overridden && <span className="text-coral"> (demo)</span>}
           </div>
           <button
+            disabled={clockBusy}
             onClick={() => void setClock(PEAK_TIME)}
-            className="rounded-lg bg-coral px-3 py-1.5 text-sm font-medium text-white"
+            className="rounded-lg bg-coral px-3 py-1.5 text-sm font-medium text-white disabled:opacity-60"
           >
             Pik saatı göstər
           </button>
           <button
+            disabled={clockBusy}
             onClick={() => void setClock(null)}
-            className="rounded-lg px-2 py-1.5 text-sm text-slate-600 ring-1 ring-slate-300"
+            className="rounded-lg px-2 py-1.5 text-sm text-slate-600 ring-1 ring-slate-300 disabled:opacity-60"
           >
             Normal saat
           </button>

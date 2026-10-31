@@ -27,10 +27,10 @@ export default function OperatorLoginPage() {
   }
 
   return (
-    <main className="flex min-h-full items-center justify-center bg-slate-50 p-6">
+    <main className="flex min-h-full items-center justify-center bg-slate-100 p-6">
       <form
         onSubmit={onSubmit}
-        className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200"
+        className="w-full max-w-sm space-y-5 rounded-3xl bg-white p-7 shadow-xl shadow-slate-900/10 ring-1 ring-slate-200"
       >
         <h1 className="text-xl font-semibold text-brand">Operator girişi</h1>
         <label className="block text-sm">
@@ -57,7 +57,7 @@ export default function OperatorLoginPage() {
         <button
           type="submit"
           disabled={busy}
-          className="w-full rounded-lg bg-brand px-4 py-2 font-medium text-white hover:bg-brand-dark disabled:opacity-60"
+          className="w-full rounded-xl bg-brand px-4 py-3 font-medium text-white hover:bg-brand-dark disabled:opacity-60"
         >
           {busy ? 'Gözləyin…' : 'Daxil ol'}
         </button>
